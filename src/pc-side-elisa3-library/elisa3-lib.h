@@ -55,6 +55,9 @@ void setLeftSpeedForAll(char *value);
  */
 void setRightSpeedForAll(char *value);
 
+
+void setAllColors(int robotAddr, char red, char green, char blue);
+
 /**
  * \brief Set the red intensity of the RGB led on the robot.
  * \param robotAddr the address of the robot for which to change the packet.

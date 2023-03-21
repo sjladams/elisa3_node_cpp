@@ -1,0 +1,33 @@
+<launch>
+  <arg name="robots_config_file"
+       default="$(find mocap_optitrack)/config/mocap.yaml" />
+
+    <arg name="base_tag" default="elisa3_robot"/>
+    <arg name="xpos" default="0.0"/>
+    <arg name="ypos" default="0.0"/>
+    <arg name="theta" default="0.0"/>
+		<!-- ************************* -->
+		<!-- Sensor enabling/disabling -->
+		<!-- ************************* -->
+    <arg name="acc_en" default="true"/>
+    <arg name="prox_en" default="false"/>
+    <arg name="mot_pos_en" default="true"/>
+    <arg name="floor_en" default="false"/>
+   
+		<!-- *************************** -->
+		<!-- Pass the params to the node -->
+		<!-- *************************** -->
+    <node pkg="elisa3_node_cpp" type="elisa3_node_cpp" name="swarm" >
+        <param name="base_tag" value="$(arg base_tag)"/>
+        <param name="accelerometer" value="$(arg acc_en)"/>
+        <param name="proximity" value="$(arg prox_en)"/>
+        <param name="motor_position" value="$(arg mot_pos_en)"/>
+        <param name="floor" value="$(arg floor_en)"/>
+
+    	<rosparam file="$(arg robots_config_file)" command="load" />
+    </node>
+    
+    <node pkg="elisa3_node_cpp" type="elisa3_odom_filter" name="listener" >
+	<rosparam file="$(arg robots_config_file)" command="load" />
+    </node>
+</launch>

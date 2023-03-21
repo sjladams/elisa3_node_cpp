@@ -327,19 +327,40 @@ void setRightSpeedForAll(char *value) {
     freeMutexTx();
 }
 
+
+// SELF-MADE
+void setAllColors(int robotAddr, char red, char green, char blue) {
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexTx();
+        }
+        redLed[id] = red;
+        blueLed[id] = blue;
+        greenLed[id] = green;
+        if(enableMut) {
+            freeMutexTx();
+        }
+    }
+}
+
+
 void setRed(int robotAddr, unsigned char value) {
     int id = getIdFromAddress(robotAddr);
     unsigned char enableMut = checkConcurrency(id);
+    //unsigned char enableMut = 1;
     if(id>=0) {
         if(value < 0) {
             value = 0;
         }
-        if(value > 100) {
-            value = 100;
-        }
+//        if(value > 100) {
+//            value = 100;
+//        }
         if(enableMut) {
             setMutexTx();
         }
+        //printf("[%d] - Red - id: %d - value: %d - enabled: %d, \r\n", robotAddr, id, value, enableMut);
         redLed[id] = value;
         if(enableMut) {
             freeMutexTx();
@@ -350,16 +371,18 @@ void setRed(int robotAddr, unsigned char value) {
 void setGreen(int robotAddr, unsigned char value) {
     int id = getIdFromAddress(robotAddr);
     unsigned char enableMut = checkConcurrency(id);
+    //unsigned char enableMut = 1;
     if(id>=0) {
         if(value < 0) {
             value = 0;
         }
-        if(value > 100) {
-            value = 100;
-        }
+//        if(value > 100) {
+//            value = 0;
+//        }
         if(enableMut) {
             setMutexTx();
         }
+        //printf("[%d] - Green - id: %d - value: %d - enabled: %d, \r\n", robotAddr, id, value, enableMut);
         greenLed[id] = value;
         if(enableMut) {
             freeMutexTx();
@@ -370,16 +393,18 @@ void setGreen(int robotAddr, unsigned char value) {
 void setBlue(int robotAddr, unsigned char value) {
     int id = getIdFromAddress(robotAddr);
     unsigned char enableMut = checkConcurrency(id);
+    //unsigned char enableMut = 1;
     if(id>=0) {
         if(value < 0) {
             value = 0;
         }
-        if(value > 100) {
-            value = 100;
-        }
+//        if(value > 100) {
+//            value = 100;
+//        }
         if(enableMut) {
             setMutexTx();
         }
+        //printf("[%d] - Blue - id: %d - value: %d - enabled: %d, \r\n", robotAddr, id, value, enableMut);
         blueLed[id] = value;
         if(enableMut) {
             freeMutexTx();
@@ -1964,6 +1989,7 @@ void *CommThread(void *arg) {
     gettimeofday(&currTimeRF, NULL);
 	gettimeofday(&txTimeRF, NULL);
 	gettimeofday(&exitTime, NULL);
+
 
     while(1) {
 
