@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <math.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include "usb-comm.h"
 
 #ifndef ELISA3_LIB_H_
@@ -18,13 +19,22 @@ extern "C" {
  * \return none
  */
 void startCommunication(int *robotAddr, int numRobots);
-
+float getUmax();
+void enableReset();
+void disableReset();
+void resetTheta();
+signed int getOdomTheta_filtered(int robotAddr);
+unsigned int getNbResets(int robotAddr);
+unsigned int getTurn(int robotAddr);
+float getSpeed(int robotAddr);
 /**
  * \brief To be called once at the end, it closes the USB communication.
  * \return none
  */
 void stopCommunication();
 
+bool getInitFlag();
+unsigned long int getProfilingTime(int robotAddr, int type);
 /**
  * \brief Set the left speed of the robot.
  * \param robotAddr the address of the robot for which to change the packet.
@@ -42,6 +52,22 @@ void setLeftSpeed(int robotAddr, char value);
 void setRightSpeed(int robotAddr, char value);
 
 /**
+ * \brief Set the xpos of a robot.
+ * \param robotAddr the address of the robot for which to change the packet.
+ * \param value The value is an signed int
+ * \return none
+ */
+void setXpos(int robotAddr, int value);
+void setXpos_fixed(int robotAddr, int value);
+/**
+ * \brief Set the ypos of a robot.
+ * \param robotAddr the address of the robot for which to change the packet.
+ * \param value The value is an signed int
+ * \return none
+ */
+void setYpos(int robotAddr, int value);
+void setYpos_fixed(int robotAddr, int value);
+/**
  * \brief Set the left speed of all the robots specified in the list.
  * \param value The speed array, range is between -128 to 127.
  * \return none
@@ -54,6 +80,9 @@ void setLeftSpeedForAll(char *value);
  * \return none
  */
 void setRightSpeedForAll(char *value);
+
+
+void setAllColors(int robotAddr, char red, char green, char blue);
 
 /**
  * \brief Set the red intensity of the RGB led on the robot.
@@ -180,6 +209,7 @@ void calibrateSensors(int robotAddr);
 /**
  * \brief Calibrate the sensors (proximity, accelerometer) of all the robots specified in the list.
  * \return none
+ *
  */
 void calibrateSensorsForAll();
 
@@ -404,13 +434,26 @@ signed int getOdomTheta(int robotAddr);
  * \return current x position of the robot expressed in millimiters.
  */
 signed int getOdomXpos(int robotAddr);
-
+signed int getXpos_fixed(int robotAddr);
 /**
  * \brief Request the current position (y component) of the robot computed from the measured speed of the motors.
  * \param robotAddr the address of the robot from which receive data.
  * \return current y position of the robot expressed in millimiters.
  */
 signed int getOdomYpos(int robotAddr);
+signed int getYpos_fixed(int robotAddr);
+
+signed int getOdomXpos_temp1(int robotAddr);
+signed int getOdomYpos_temp1(int robotAddr);
+
+signed int setTheta(int robotAddr, int value);
+
+/**
+ * \brief Request the current nb of triggering events of the robot.
+ * \param robotAddr the address of the robot from which receive data.
+ * \return current y position of the robot expressed in millimiters.
+ */
+unsigned int getNbEvents(int robotAddr);
 
 /**
  * \brief Request the current orientation of the robot given by the accelerometer. This function is usable only if the robot is moving vertically.
@@ -619,6 +662,5 @@ unsigned char sendMessageToRobot(int robotAddr, char red, char green, char blue,
 #endif
 
 #endif // ELISA3_LIB_H_
-
 
 

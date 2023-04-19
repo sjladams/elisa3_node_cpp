@@ -1,11 +1,13 @@
-
+#include <stdio.h>
 #include "elisa3-lib.h"
+#include <tgmath.h>
+#include <stdbool.h>
 #ifdef _WIN32
-    #include "windows.h"
+#include "windows.h"
 #endif
 
 #if defined(__linux__) || defined(__APPLE__)
-    #include "pthread.h"
+#include "pthread.h"
 	#include <time.h>
 	#include <sys/time.h>
 #endif
@@ -30,6 +32,7 @@
 
 #define RAD_2_DEG 57.2957796
 
+//#define ROBOTS 3
 #define NUM_ROBOTS 4
 #define PAYLOAD_SIZE 13
 #define ADDR_SIZE 2
@@ -37,6 +40,8 @@
 #define PACKETS_SIZE 64
 #define OVERHEAD_SIZE (2*NUM_ROBOTS+1)
 #define UNUSED_BYTES 3
+#define BULK_NB 4
+#define ROBOT_MSG 15 //15, 21, 32
 
 // The usb buffer between the pc and the base-station is 64 bytes.
 // Each packet exchanged with the bast-station must contain as the
@@ -74,11 +79,29 @@
 // - command: 1 byte, indicates which command the packet refer to
 // - address: 2 bytes per robot
 
+//formation + laplacian
+int L[18][18] = {{1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-1, 2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+int Bx[18][18] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+int By[18][18] = {{-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+int error = 10; //in mm
+int u_max = 30;
+float speed_max = 0;
+float speed_temp[100] = {0};
+bool reset_flag = false;
+bool reset_theta = false;
+const int ROBOTS = 3;
+unsigned int currNumRobots = 3;
 
+//float testing = 0.0;
 // robots
+int type = 0;
 int robotAddress[100];
 char leftSpeed[100];
 char rightSpeed[100];
+signed int xPos[100];
+signed int yPos[100];
+signed int xPos_fixed[100];
+signed int yPos_fixed[100];
 char redLed[100], greenLed[100], blueLed[100];
 unsigned int proxValue[100][8];
 unsigned int proxAmbientValue[100][8];
@@ -94,7 +117,22 @@ unsigned char flagsTX[100][2];
 unsigned char smallLeds[100];
 signed long int leftMotSteps[100], rightMotSteps[100];
 signed int robTheta[100], robXPos[100], robYPos[100];
+signed int robTheta_filtered[100] = {0};
+signed int testing[100];
+signed int robXPos_fixed[100], robYPos_fixed[100], robXPos_temp1[100], robYPos_temp1[100];
+unsigned int trigger_count[100];
+unsigned int reset_count[100] = {0};
+unsigned int trigger_count_previous[100];
 unsigned char sleepEnabledFlag[100];
+bool init_flag = false;
+unsigned int turn[100];
+signed int rSpeed[100];
+
+//profiling
+unsigned long int control_time[100];
+unsigned long int loop_time[100];
+unsigned long int init_time[100];
+unsigned long int comm_time[100];
 
 // Communication
 char RX_buffer[64]={0};         // Last packet received from base station
@@ -117,9 +155,12 @@ unsigned char lastMessageSentFlag[100];
 unsigned char calibrationSent[100];
 unsigned char calibrateOdomSent[100];
 unsigned char stopTransmissionFlag = 0;
-unsigned int currNumRobots = 0;
 unsigned int currPacketId = 0;
+unsigned int currRobotId = 0;
+unsigned int currRobotId_L = 0;
+unsigned int nb_init_rounds = 0;
 unsigned char usbCommOpenedFlag = 0;
+unsigned int neigh_id = ROBOTS+1;
 
 // functions declaration
 #ifdef _WIN32
@@ -141,11 +182,11 @@ int computeVerticalAngle(signed int x, signed int y) {
 
     int currentAngle = 0;
 
-	currentAngle = (signed int)(atan2f((float)x, (float)y)*RAD_2_DEG);
+    currentAngle = (signed int)(atan2f((float)x, (float)y)*RAD_2_DEG);
 
-	if(currentAngle<0) {
-		currentAngle = 360+currentAngle;	// angles from 0 to 360
-	}
+    if(currentAngle<0) {
+        currentAngle = 360+currentAngle;	// angles from 0 to 360
+    }
 
     return currentAngle;
 
@@ -159,6 +200,18 @@ int getIdFromAddress(int address) {
         }
     }
     return -1;
+}
+
+void enableReset(){
+    reset_flag = true;
+}
+
+void resetTheta(){
+    reset_theta = true;
+}
+
+void disableReset(){
+    reset_flag = false;
 }
 
 void startCommunication(int *robotAddr, int numRobots) {
@@ -208,7 +261,7 @@ void stopCommunication() {
 #endif
 
 #if defined(__linux__) || defined(__APPLE__)
-	pthread_cancel(commThread);
+    pthread_cancel(commThread);
 	pthread_mutex_destroy(&mutexTx);
 	pthread_mutex_destroy(&mutexRx);
 	pthread_mutex_destroy(&mutexThread);
@@ -309,6 +362,65 @@ void setRightSpeed(int robotAddr, char value) {
     }
 }
 
+// Newly added functions to save xPos and yPos of robots in an array to be transmitted
+void setXpos(int robotAddr, int value) {
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexTx();
+        }
+        xPos[id] = value;
+
+        if(enableMut) {
+            freeMutexTx();
+        }
+    }
+}
+
+void setXpos_fixed(int robotAddr, int value) {
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexTx();
+        }
+        xPos_fixed[id] = value;
+
+        if(enableMut) {
+            freeMutexTx();
+        }
+    }
+}
+
+void setYpos(int robotAddr, int value) {
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexTx();
+        }
+        yPos[id] = value;
+        if(enableMut) {
+            freeMutexTx();
+        }
+    }
+}
+
+void setYpos_fixed(int robotAddr, int value) {
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexTx();
+        }
+        yPos_fixed[id] = value;
+        if(enableMut) {
+            freeMutexTx();
+        }
+    }
+}
+
 void setLeftSpeedForAll(char *value) {
     int i = 0;
     setMutexTx();
@@ -327,19 +439,40 @@ void setRightSpeedForAll(char *value) {
     freeMutexTx();
 }
 
+
+// SELF-MADE
+void setAllColors(int robotAddr, char red, char green, char blue) {
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexTx();
+        }
+        redLed[id] = red;
+        blueLed[id] = blue;
+        greenLed[id] = green;
+        if(enableMut) {
+            freeMutexTx();
+        }
+    }
+}
+
+
 void setRed(int robotAddr, unsigned char value) {
     int id = getIdFromAddress(robotAddr);
     unsigned char enableMut = checkConcurrency(id);
+    //unsigned char enableMut = 1;
     if(id>=0) {
         if(value < 0) {
             value = 0;
         }
-        if(value > 100) {
-            value = 100;
-        }
+//        if(value > 100) {
+//            value = 100;
+//        }
         if(enableMut) {
             setMutexTx();
         }
+        //printf("[%d] - Red - id: %d - value: %d - enabled: %d, \r\n", robotAddr, id, value, enableMut);
         redLed[id] = value;
         if(enableMut) {
             freeMutexTx();
@@ -350,16 +483,18 @@ void setRed(int robotAddr, unsigned char value) {
 void setGreen(int robotAddr, unsigned char value) {
     int id = getIdFromAddress(robotAddr);
     unsigned char enableMut = checkConcurrency(id);
+    //unsigned char enableMut = 1;
     if(id>=0) {
         if(value < 0) {
             value = 0;
         }
-        if(value > 100) {
-            value = 100;
-        }
+//        if(value > 100) {
+//            value = 0;
+//        }
         if(enableMut) {
             setMutexTx();
         }
+        //printf("[%d] - Green - id: %d - value: %d - enabled: %d, \r\n", robotAddr, id, value, enableMut);
         greenLed[id] = value;
         if(enableMut) {
             freeMutexTx();
@@ -370,16 +505,18 @@ void setGreen(int robotAddr, unsigned char value) {
 void setBlue(int robotAddr, unsigned char value) {
     int id = getIdFromAddress(robotAddr);
     unsigned char enableMut = checkConcurrency(id);
+    //unsigned char enableMut = 1;
     if(id>=0) {
         if(value < 0) {
             value = 0;
         }
-        if(value > 100) {
-            value = 100;
-        }
+//        if(value > 100) {
+//            value = 100;
+//        }
         if(enableMut) {
             setMutexTx();
         }
+        //printf("[%d] - Blue - id: %d - value: %d - enabled: %d, \r\n", robotAddr, id, value, enableMut);
         blueLed[id] = value;
         if(enableMut) {
             freeMutexTx();
@@ -869,6 +1006,37 @@ unsigned int getBatteryAdc(int robotAddr) {
     return -1;
 }
 
+unsigned long int getProfilingTime(int robotAddr, int type) {
+    unsigned long int tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        switch (type) {
+            case 0:
+                tempVal = control_time[id];
+                break;
+            case 1:
+                tempVal = loop_time[id];
+                break;
+            case 2:
+                tempVal = init_time[id];
+                break;
+            case 3:
+                tempVal = comm_time[id];
+                break;
+
+        }
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
 unsigned int getBatteryPercent(int robotAddr) {
     int id = getIdFromAddress(robotAddr);
     unsigned int tempVal=0;
@@ -995,6 +1163,57 @@ signed int getOdomTheta(int robotAddr) {
     return -1;
 }
 
+float getSpeed(int robotAddr) {
+    float tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        tempVal = speed_temp[id];
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
+signed int getOdomTheta_filtered(int robotAddr) {
+    signed int tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        tempVal = testing[id];
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
+signed int setTheta(int robotAddr, signed int value) {
+    signed int tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        robTheta_filtered[id] = value;
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
 signed int getOdomXpos(int robotAddr) {
     signed int tempVal=0;
     int id = getIdFromAddress(robotAddr);
@@ -1012,6 +1231,23 @@ signed int getOdomXpos(int robotAddr) {
     return -1;
 }
 
+signed int getXpos_fixed(int robotAddr) {
+    signed int tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        tempVal = robXPos_fixed[id];
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
 signed int getOdomYpos(int robotAddr) {
     signed int tempVal=0;
     int id = getIdFromAddress(robotAddr);
@@ -1021,6 +1257,109 @@ signed int getOdomYpos(int robotAddr) {
             setMutexRx();
         }
         tempVal = robYPos[id];
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
+signed int getYpos_fixed(int robotAddr) {
+    signed int tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        tempVal = robYPos_fixed[id];
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
+signed int getOdomXpos_temp1(int robotAddr) {
+    signed int tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        tempVal = robXPos_temp1[id];
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
+signed int getOdomYpos_temp1(int robotAddr) {
+    signed int tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        tempVal = robYPos_temp1[id];
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
+
+unsigned int getNbEvents(int robotAddr) {
+    unsigned int tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        tempVal = trigger_count[id];
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
+unsigned int getNbResets(int robotAddr) {
+    unsigned int tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        tempVal = reset_count[id];
+        if(enableMut) {
+            freeMutexRx();
+        }
+        return tempVal;
+    }
+    return -1;
+}
+
+unsigned int getTurn(int robotAddr) {
+    unsigned int tempVal=0;
+    int id = getIdFromAddress(robotAddr);
+    unsigned char enableMut = checkConcurrency(id);
+    if(id>=0) {
+        if(enableMut) {
+            setMutexRx();
+        }
+        tempVal = turn[id];
         if(enableMut) {
             freeMutexRx();
         }
@@ -1124,7 +1463,7 @@ void startOdometryCalibration(int robotAddr) {
         if(enableMut) {
             setMutexTx();
         }
-		calibrateOdomSent[id] = 0;
+        calibrateOdomSent[id] = 0;
         flagsTX[id][1] |= (1<<0);
         if(enableMut) {
             freeMutexTx();
@@ -1263,6 +1602,14 @@ signed long int getRightMotSteps(int robotAddr) {
     return -1;
 }
 
+bool getInitFlag(){
+    return init_flag;
+}
+
+float getUmax(){
+    return speed_max;
+}
+
 void resetMessageIsSentFlag(int robotAddr) {
     int id = getIdFromAddress(robotAddr);
     unsigned char enableMut = checkConcurrency(id);
@@ -1318,6 +1665,7 @@ void stopTransferData() {
 void resumeTransferData() {
     stopTransmissionFlag = 0;
 }
+
 
 void setCompletePacket(int robotAddr, char red, char green, char blue, char flags[2], char left, char right, char leds) {
     int id = getIdFromAddress(robotAddr);
@@ -1378,7 +1726,7 @@ unsigned char waitForUpdate(int robotAddr, unsigned long us) {
 #endif
 
 #if defined(__linux__) || defined(__APPLE__)
-	struct timeval startTime, exitTime;
+    struct timeval startTime, exitTime;
     gettimeofday(&startTime, NULL);
 	gettimeofday(&exitTime, NULL);
 #endif
@@ -1408,7 +1756,7 @@ unsigned char waitForUpdate(int robotAddr, unsigned long us) {
 
 void transferData() {
 
-    int err=0;
+    int err = 0;
 
 #ifdef _WIN32
     WaitForSingleObject(mutexTx, INFINITE);
@@ -1417,104 +1765,286 @@ void transferData() {
     pthread_mutex_lock(&mutexTx);
 #endif
 
-    // first robot
-    if(sleepEnabledFlag[0] == 1) {
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+1] = 0x00;                          // R
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+2] = 0x00;				            // B
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+3] = 0x00;                          // G
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+4] = flagsTX[currPacketId*4+0][0];                 // activate IR remote control
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+5] = 0x00;                          // speed right (in percentage)
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+6] = 0x00;                          // speed left (in percentage)
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+7] = 0x00;                          // small green leds
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+8] = 0x00;
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+14] = (robotAddress[currPacketId*4+0]>>8)&0xFF;     // address of the robot
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+15] = robotAddress[currPacketId*4+0]&0xFF;
-    } else {
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+1] = redLed[currPacketId*4+0];                     // R
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+2] = blueLed[currPacketId*4+0];    	            // B
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+3] = greenLed[currPacketId*4+0];                   // G
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+4] = flagsTX[currPacketId*4+0][0];                    // flags
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+5] = speed(rightSpeed[currPacketId*4+0]);                     // speed right
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+6] = speed(leftSpeed[currPacketId*4+0]);                     // speed left
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+7] = smallLeds[currPacketId*4+0];                   // small green leds
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+8] = flagsTX[currPacketId*4+0][1];
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+14] = (robotAddress[currPacketId*4+0]>>8)&0xFF;     // address of the robot
-        TX_buffer[(0*ROBOT_PACKET_SIZE)+15] = robotAddress[currPacketId*4+0]&0xFF;
-    }
+    int i;
 
-    // second robot
-    if(sleepEnabledFlag[1] == 1) {
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+1] = 0x00;                          // R
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+2] = 0x00;				            // B
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+3] = 0x00;                          // G
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+4] = flagsTX[currPacketId*4+1][0];                       // activate IR remote control
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+5] = 0x00;                          // speed right (in percentage)
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+6] = 0x00;                          // speed left (in percentage)
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+7] = 0x00;                          // small green leds
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+8] = 0x00;
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+14] = ((robotAddress[currPacketId*4+1])>>8)&0xFF; // address of the robot
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+15] = (robotAddress[currPacketId*4+1])&0xFF;
-    } else {
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+1] = redLed[currPacketId*4+1];                     // R
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+2] = blueLed[currPacketId*4+1];    	            // B
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+3] = greenLed[currPacketId*4+1];                   // G
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+4] = flagsTX[currPacketId*4+1][0];                    // flags
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+5] = speed(rightSpeed[currPacketId*4+1]);                     // speed right
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+6] = speed(leftSpeed[currPacketId*4+1]);                     // speed left
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+7] = smallLeds[currPacketId*4+1];                   // small green leds
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+8] = flagsTX[currPacketId*4+1][1];
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+14] = (robotAddress[currPacketId*4+1]>>8)&0xFF;     // address of the robot
-        TX_buffer[(1*ROBOT_PACKET_SIZE)+15] = robotAddress[currPacketId*4+1]&0xFF;
-    }
 
-    // third robot
-    if(sleepEnabledFlag[2] == 1) {
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+1] = 0x00;                          // R
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+2] = 0x00;				            // B
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+3] = 0x00;                          // G
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+4] = flagsTX[currPacketId*4+2][0];                       // activate IR remote control
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+5] = 0x00;                          // speed right (in percentage)
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+6] = 0x00;                          // speed left (in percentage)
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+7] = 0x00;                          // small green leds
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+8] = 0x00;
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+14] = ((robotAddress[currPacketId*4+2])>>8)&0xFF; // address of the robot
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+15] = (robotAddress[currPacketId*4+2])&0xFF;
-    } else {
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+1] = redLed[currPacketId*4+2];                     // R
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+2] = blueLed[currPacketId*4+2];    	            // B
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+3] = greenLed[currPacketId*4+2];                   // G
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+4] = flagsTX[currPacketId*4+2][0];                    // flags
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+5] = speed(rightSpeed[currPacketId*4+2]);                     // speed right
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+6] = speed(leftSpeed[currPacketId*4+2]);                     // speed left
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+7] = smallLeds[currPacketId*4+2];                   // small green leds
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+8] = flagsTX[currPacketId*4+2][1];
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+14] = (robotAddress[currPacketId*4+2]>>8)&0xFF;     // address of the robot
-        TX_buffer[(2*ROBOT_PACKET_SIZE)+15] = robotAddress[currPacketId*4+2]&0xFF;
-    }
+    if (init_flag) {
+        // find id of robot that needs updating
+        if (currPacketId == 0) {
+            neigh_id = ROBOTS + 1;
+            for (i = 0; i < ROBOTS; i++) {
+                //printf("Robot %d, trigger old: %d, trigger: %d \n", i, trigger_count_previous[i], trigger_count[i]);
+                if (trigger_count_previous[i] < trigger_count[i]) {
+                    if ( (trigger_count[i]-trigger_count_previous[i])>(trigger_count[neigh_id]-trigger_count_previous[neigh_id])){
+                        neigh_id = i;
 
-    // fourth robot
-    if(sleepEnabledFlag[3] == 1) {
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+1] = 0x00;                          // R
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+2] = 0x00;				            // B
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+3] = 0x00;                          // G
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+4] = flagsTX[currPacketId*4+3][0];                       // activate IR remote control
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+5] = 0x00;                          // speed right (in percentage)
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+6] = 0x00;                          // speed left (in percentage)
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+7] = 0x00;                          // small green leds
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+8] = 0x00;
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+14] = ((robotAddress[currPacketId*4+3])>>8)&0xFF; // address of the robot
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+15] = (robotAddress[currPacketId*4+3])&0xFF;
-    } else {
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+1] = redLed[currPacketId*4+3];                     // R
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+2] = blueLed[currPacketId*4+3];    	            // B
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+3] = greenLed[currPacketId*4+3];                   // G
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+4] = flagsTX[currPacketId*4+3][0];                    // flags
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+5] = speed(rightSpeed[currPacketId*4+3]);                     // speed right
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+6] = speed(leftSpeed[currPacketId*4+3]);                     // speed left
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+7] = smallLeds[currPacketId*4+3];                   // small green leds
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+8] = flagsTX[currPacketId*4+3][1];
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+14] = (robotAddress[currPacketId*4+3]>>8)&0xFF;     // address of the robot
-        TX_buffer[(3*ROBOT_PACKET_SIZE)+15] = robotAddress[currPacketId*4+3]&0xFF;
+                    }
+                    //printf("ROBOT %d needs to trigger\n", i);
+
+                    //break;
+                }
+            }
+        }
+
+		//printf("sending operational msgs\n");
+        //printf("TRIGGER %d \n", neigh_id);
+
+        int i;
+        int j;
+        for (i = 0; i < BULK_NB; i++) {
+            if (sleepEnabledFlag[i] == 1) {
+                for (j = 1; j < ROBOT_MSG - 2; j++) {
+                    TX_buffer[(i * ROBOT_PACKET_SIZE) + j] = 0x00;
+                }
+            } else {
+                // operational packet
+
+                //printf("Send data of robot %d \n", neigh_id);
+                trigger_count_previous[neigh_id] = trigger_count[neigh_id];
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = neigh_id;
+
+                // must be changed to the angle of the robot -- live update
+                //TX_buffer[(i * ROBOT_PACKET_SIZE) + 2] = speed(rightSpeed[currPacketId * BULK_NB + i]);// speed right
+                //TX_buffer[(i * ROBOT_PACKET_SIZE) + 3] = speed(leftSpeed[currPacketId * BULK_NB + i]); // speed left
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 2] = robTheta_filtered[currPacketId * BULK_NB + i]& 0xFF;// speed right
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 3] = robTheta_filtered[currPacketId * BULK_NB + i] >> 8 & 0xFF; // speed left
+
+
+                if (neigh_id < ROBOTS + 1) {
+                    TX_buffer[(i * ROBOT_PACKET_SIZE) + 4] = CALIBRATION_ON(flagsTX[currPacketId * BULK_NB + i][0]);
+                } else {
+                    TX_buffer[(i * ROBOT_PACKET_SIZE) + 4] = CALIBRATION_OFF(flagsTX[currPacketId * BULK_NB + i][0]);
+                }
+
+                // Reset robot odometry
+                if (reset_flag ){
+                    TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] = 0xE0;
+                }else{
+                    TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] = 0x00;
+                }
+
+                // Reset robot orientation
+                if (reset_theta){
+                    TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] |= 0x15;
+                }else{
+                    TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] |= 0x00;
+                }
+
+                // Own position -- live update
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 6] = (xPos[currPacketId * BULK_NB + i]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 7] = (xPos[currPacketId * BULK_NB + i]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 8] = (yPos[currPacketId * BULK_NB + i]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 9] = (yPos[currPacketId * BULK_NB + i]) >> 8 & 0xFF;
+
+                //Neighbours position that needs updating -- broadcasted update
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 10] = (robXPos_fixed[neigh_id]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 11] = (robXPos_fixed[neigh_id]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 12] = (robYPos_fixed[neigh_id]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 13] = (robYPos_fixed[neigh_id]) >> 8 & 0xFF;
+
+            }
+            TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG - 1] =
+                    (robotAddress[currPacketId * BULK_NB + i] >> 8) & 0xFF;     // address of the robot
+            TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
+        }
+
+        if (reset_flag){
+            if ((currPacketId+1)>=(ROBOTS/BULK_NB)) {
+                disableReset();
+                reset_flag = false;
+                reset_theta = false;
+            }
+        }
+    }else{
+        // Init packets
+
+        // update robots with all the positions
+        switch (type){
+
+        case 0 :
+			printf("sending type 0\n");
+            // update parameters
+            for (i = 0; i < BULK_NB; i++) {
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = (currPacketId * BULK_NB + i) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 2] = (robTheta_filtered[currPacketId * BULK_NB + i]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 3] = (robTheta_filtered[currPacketId * BULK_NB + i])>> 8 & 0xFF;
+
+                // Own position -- live update
+				TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] = (ROBOTS) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 6] = (xPos[currPacketId * BULK_NB + i]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 7] = (xPos[currPacketId * BULK_NB + i]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 8] = (yPos[currPacketId * BULK_NB + i]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 9] = (yPos[currPacketId * BULK_NB + i]) >> 8 & 0xFF;
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 10] = (error) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 11] = (error) >> 8 & 0xFF;
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 12] = (u_max) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 13] = (u_max) >> 8 & 0xFF;
+
+                // send init phase + currently send robot positions
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 4] = 0x80;
+
+                // Reset orientation at init
+                //TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] |= 0x15;
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG - 1] =
+                        (robotAddress[currPacketId * BULK_NB + i] >> 8) & 0xFF;     // address of the robot
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
+            }
+
+            if ((currPacketId+1)>=(currNumRobots/BULK_NB)) {
+                type = 1;
+            }
+
+
+            break;
+        case 1 :
+            // update positions
+			printf("sending type 1, %d\n", currRobotId);
+            for (i = 0; i < BULK_NB; i++) {
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = (xPos[currRobotId * 3]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 2] = (xPos[currRobotId * 3]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 3] = (yPos[currRobotId * 3]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] = (yPos[currRobotId * 3]) >> 8 & 0xFF;
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 6] = (xPos[currRobotId * 3 + 1]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 7] = (xPos[currRobotId * 3 + 1]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 8] = (yPos[currRobotId * 3 + 1]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 9] = (yPos[currRobotId * 3 + 1]) >> 8 & 0xFF;
+
+                //printf("RobYtemp %d\n", yPos[currRobotId*3+1]);
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 10] = (xPos[currRobotId * 3 + 2]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 11] = (xPos[currRobotId * 3 + 2]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 12] = (yPos[currRobotId * 3 + 2]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 13] = (yPos[currRobotId * 3 + 2]) >> 8 & 0xFF;
+
+                // send init phase + currently send robot positions
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 4] = 0x80 | (currRobotId+1);
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG - 1] =
+                        (robotAddress[currPacketId * BULK_NB + i] >> 8) & 0xFF;     // address of the robot
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
+            }
+            //currRobotId += 3;
+
+            if ((robYPos_temp1[ROBOTS-1] > 0) && ((currPacketId+1)>=(currNumRobots/BULK_NB))){
+                type = 2;
+            }
+
+            break;
+
+        case 2 :
+            // update L
+			printf("sending type 2\n");
+            for (i = 0; i < BULK_NB; i++) {
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 2] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 3] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 1]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 1]) >> 8 & 0xFF;
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 6] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 2]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 7] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 2]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 8] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 3]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 9] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 3]) >> 8 & 0xFF;
+
+                //printf("RobYtemp %d\n", yPos[currRobotId*3+1]);
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 10] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 4]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 11] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 4]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 12] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 5]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 13] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 5]) >> 8 & 0xFF;
+
+                // send init phase + currently send robot positions
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 4] = 0x90 | (currRobotId_L);
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG - 1] =
+                        (robotAddress[currPacketId * BULK_NB + i] >> 8) & 0xFF;     // address of the robot
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
+            }
+
+            if ((currPacketId+1)>=(currNumRobots/BULK_NB) && (currRobotId_L+1)>=(ROBOTS/6)) {
+                type = 3;
+                //currRobotId_L = 0;
+            }
+
+            break;
+
+        case 3 :
+            // update Bx // B[0]
+		
+            for (i = 0; i < BULK_NB; i++) {
+				printf("sending type 3, Bx[%d][%d] %d\n", currPacketId * BULK_NB + i, currRobotId_L * 3 + 2 ,Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 2]);
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 2] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 3] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 1]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 1]) >> 8 & 0xFF;
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 6] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 2]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 7] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 2]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 8] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 3]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 9] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 3]) >> 8 & 0xFF;
+
+                //printf("RobYtemp %d\n", yPos[currRobotId*3+1]);
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 10] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 4]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 11] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 4]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 12] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 5]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 13] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 5]) >> 8 & 0xFF;
+
+                // send init phase + currently send robot positions
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 4] = 0xC0 | (currRobotId_L);
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG - 1] =
+                        (robotAddress[currPacketId * BULK_NB + i] >> 8) & 0xFF;     // address of the robot
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
+            }
+
+            if ((currPacketId+1)>=(currNumRobots/BULK_NB) && (currRobotId_L+1)>=(ROBOTS/6)) {
+                type = 4;
+                //currRobotId_L = 0;
+            }
+
+            break;
+        case 4 :
+			printf("sending type 4\n");
+            // update By // B[1]
+            for (i = 0; i < BULK_NB; i++) {
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 2] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 3] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3 + 1]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3 + 1]) >> 8 & 0xFF;
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 6] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3 + 2]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 7] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3 + 2]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 8] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3 + 3]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 9] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3 + 3]) >> 8 & 0xFF;
+
+                //printf("RobYtemp %d\n", yPos[currRobotId*3+1]);
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 10] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3 + 4]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 11] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3 + 4]) >> 8 & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 12] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3 + 5]) & 0xFF;
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 13] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3 + 5]) >> 8 & 0xFF;
+
+                // send init phase + currently send robot positions
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + 4] = 0xD0 | (currRobotId_L);
+
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG - 1] =
+                        (robotAddress[currPacketId * BULK_NB + i] >> 8) & 0xFF;     // address of the robot
+                TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
+            }
+
+            if ((currPacketId+1)>=(currNumRobots/BULK_NB) && (currRobotId_L+1)>=(ROBOTS/6)) {
+                init_flag = true;
+                //currRobotId_L = 0;
+            }
+            break;
+		}
+        
+        //printf("send init data, %d\n", currRobotId);
     }
 
 #ifdef _WIN32
@@ -1525,8 +2055,8 @@ void transferData() {
 #endif
 
     // transfer the data to the base-station
-    err = usb_send(TX_buffer, PACKETS_SIZE-UNUSED_BYTES);
-    if(err < 0) {
+    err = usb_send(TX_buffer, PACKETS_SIZE);
+    if (err < 0) {
         printf("send error!\n");
     }
 
@@ -1536,41 +2066,19 @@ void transferData() {
 #if defined(__linux__) || defined(__APPLE__)
     pthread_mutex_lock(&mutexTx);
 #endif
-	calibrationSent[currPacketId*4+0]++;
-	calibrationSent[currPacketId*4+1]++;
-	calibrationSent[currPacketId*4+2]++;
-	calibrationSent[currPacketId*4+3]++;
 
-	calibrateOdomSent[currPacketId*4+0]++;
-	calibrateOdomSent[currPacketId*4+1]++;
-	calibrateOdomSent[currPacketId*4+2]++;
-	calibrateOdomSent[currPacketId*4+3]++;
+    for (i = 0; i < BULK_NB; i++) {
+        calibrationSent[currPacketId * BULK_NB + i]++;
 
-	if(calibrationSent[currPacketId*4+0] > 2) {
-	    CALIBRATION_OFF(flagsTX[currPacketId*4+0][0]);
-	}
-	if(calibrationSent[currPacketId*4+1] > 2) {
-	    CALIBRATION_OFF(flagsTX[currPacketId*4+1][0]);
-	}
-	if(calibrationSent[currPacketId*4+2] > 2) {
-    	CALIBRATION_OFF(flagsTX[currPacketId*4+2][0]);
-	}
-	if(calibrationSent[currPacketId*4+3] > 2) {
-    	CALIBRATION_OFF(flagsTX[currPacketId*4+3][0]);
-	}
+        calibrateOdomSent[currPacketId * BULK_NB + i]++;
 
-	if(calibrateOdomSent[currPacketId*4+0] > 2) {
-	    flagsTX[currPacketId*4+0][1] &= ~(1<<0);
-	}
-	if(calibrateOdomSent[currPacketId*4+1] > 2) {
-    	flagsTX[currPacketId*4+1][1] &= ~(1<<0);
-	}
-	if(calibrateOdomSent[currPacketId*4+2] > 2) {
-	    flagsTX[currPacketId*4+2][1] &= ~(1<<0);
-	}
-	if(calibrateOdomSent[currPacketId*4+3] > 2) {
-	    flagsTX[currPacketId*4+3][1] &= ~(1<<0);
-	}
+        if (calibrationSent[currPacketId * BULK_NB + i] > 2) {
+            CALIBRATION_OFF(flagsTX[currPacketId * BULK_NB + i][0]);
+        }
+        if (calibrateOdomSent[currPacketId * BULK_NB + i] > 2) {
+            flagsTX[currPacketId * BULK_NB + i][1] &= ~(1 << 0);
+        }
+    }
 
 #ifdef _WIN32
     ReleaseMutex(mutexTx);
@@ -1585,7 +2093,7 @@ void transferData() {
     RX_buffer[32] = 0;
     RX_buffer[48] = 0;
     err = usb_receive(RX_buffer, 64);     // receive the ack payload for 4 robots at a time (16 bytes for each one)
-    if(err < 0) {
+    if (err < 0) {
         printf("receive error!\n");
     }
 
@@ -1598,283 +2106,160 @@ void transferData() {
 
     // when the flag "lastMessageSentFlag" is reset we aren't sure the current message is really sent to the radio module
     // for next transmission to the robots so we wait the message is sent twice
-    if(lastMessageSentFlag[currPacketId*4+0]==0) {
-        lastMessageSentFlag[currPacketId*4+0]=1;
-    } else if(lastMessageSentFlag[currPacketId*4+0]==1) {
-        lastMessageSentFlag[currPacketId*4+0]=2;
-    }
-    if(lastMessageSentFlag[currPacketId*4+1]==0) {
-        lastMessageSentFlag[currPacketId*4+1]=1;
-    } else if(lastMessageSentFlag[currPacketId*4+1]==1) {
-        lastMessageSentFlag[currPacketId*4+1]=2;
-    }
-    if(lastMessageSentFlag[currPacketId*4+2]==0) {
-        lastMessageSentFlag[currPacketId*4+2]=1;
-    } else if(lastMessageSentFlag[currPacketId*4+2]==1) {
-        lastMessageSentFlag[currPacketId*4+2]=2;
-    }
-    if(lastMessageSentFlag[currPacketId*4+3]==0) {
-        lastMessageSentFlag[currPacketId*4+3]=1;
-    } else if(lastMessageSentFlag[currPacketId*4+3]==1) {
-        lastMessageSentFlag[currPacketId*4+3]=2;
+
+    for (i = 0; i < BULK_NB; i++) {
+        if (lastMessageSentFlag[currPacketId * BULK_NB + i] == 0) {
+            lastMessageSentFlag[currPacketId * BULK_NB + i] = 1;
+        } else if (lastMessageSentFlag[currPacketId * BULK_NB + i] == 1) {
+            lastMessageSentFlag[currPacketId * BULK_NB + i] = 2;
+        }
     }
 
     // the base-station returns this "error" codes:
     // - 0 => transmission succeed (no ack received though)
     // - 1 => ack received (should not be returned because if the ack is received, then the payload is read)
     // - 2 => transfer failed
-    if((int)((unsigned char)RX_buffer[0])<=2) { // if something goes wrong skip the data
-        //printf("transfer failed to robot %d (addr=%d)\n", 0, currAddress[0]);
-        numOfErrors[currPacketId*4+0]++;
-    } else {
-        if(lastMessageSentFlag[currPacketId*4+0]==2) {
-            lastMessageSentFlag[currPacketId*4+0]=3;
-        }
-        // extract the sensors data for the first robot based on the packet id (first byte):
-        // id=3 | prox0         | prox1         | prox2         | prox3         | prox5         | prox6         | prox7         | flags
-        // id=4 | prox4         | gound0        | ground1       | ground2       | ground3       | accX          | accY          | tv remote
-        // id=5 | proxAmbient0  | proxAmbient1  | proxAmbient2  | proxAmbient3  | proxAmbient5  | proxAmbient6  | proxAmbient7  | selector
-        // id=6 | proxAmbient4  | goundAmbient0 | goundAmbient1 | goundAmbient2 | goundAmbient3 | accZ          | battery       | free byte
-        switch((int)((unsigned char)RX_buffer[0])) {
-            case 3:
-                proxValue[currPacketId*4+0][0] = (((signed int)RX_buffer[2]<<8)|(unsigned char)RX_buffer[1]);
-                proxValue[currPacketId*4+0][1] = ((signed int)RX_buffer[4]<<8)|(unsigned char)RX_buffer[3];
-                proxValue[currPacketId*4+0][2] = ((signed int)RX_buffer[6]<<8)|(unsigned char)RX_buffer[5];
-                proxValue[currPacketId*4+0][3] = ((signed int)RX_buffer[8]<<8)|(unsigned char)RX_buffer[7];
-                proxValue[currPacketId*4+0][5] = ((signed int)RX_buffer[10]<<8)|(unsigned char)RX_buffer[9];
-                proxValue[currPacketId*4+0][6] = ((signed int)RX_buffer[12]<<8)|(unsigned char)RX_buffer[11];
-                proxValue[currPacketId*4+0][7] = ((signed int)RX_buffer[14]<<8)|(unsigned char)RX_buffer[13];
-                flagsRX[currPacketId*4+0] = (unsigned char)RX_buffer[15];
-                break;
+    for (i = 0; i<BULK_NB; i++) {
 
-            case 4:
-                proxValue[currPacketId*4+0][4] = ((signed int)RX_buffer[2]<<8)|(unsigned char)RX_buffer[1];
-                groundValue[currPacketId*4+0][0] = ((signed int)RX_buffer[4]<<8)|(unsigned char)RX_buffer[3];
-                groundValue[currPacketId*4+0][1] = ((signed int)RX_buffer[6]<<8)|(unsigned char)RX_buffer[5];
-                groundValue[currPacketId*4+0][2] = ((signed int)RX_buffer[8]<<8)|(unsigned char)RX_buffer[7];
-                groundValue[currPacketId*4+0][3] = ((signed int)RX_buffer[10]<<8)|(unsigned char)RX_buffer[9];
-                accX[currPacketId*4+0] = (int)((RX_buffer[12]<<8)|(RX_buffer[11]));
-                accY[currPacketId*4+0] = (int)((RX_buffer[14]<<8)|(RX_buffer[13]));
-                tvRemote[currPacketId*4+0] = (unsigned char)RX_buffer[15];
-                break;
+        if ((int) ((unsigned char) RX_buffer[ROBOT_MSG*i + i]) <= 2) { // if something goes wrong skip the data
+            //printf("transfer failed to robot %d (addr=%d)\n", i, RX_buffer[ROBOT_MSG*i + i]);
+            numOfErrors[currPacketId * BULK_NB + i]++;
+        } else {
+            if (lastMessageSentFlag[currPacketId * BULK_NB + i] == 2) {
+                lastMessageSentFlag[currPacketId * BULK_NB + i] = 3;
+            }
+            // extract the sensors data for the first robot based on the packet id (first byte):
+            // id=3 | prox0         | prox1         | prox2         | prox3         | prox5         | prox6         | prox7         | flags
+            // id=4 | prox4         | gound0        | ground1       | ground2       | ground3       | accX          | accY          | tv remote
+            // id=5 | proxAmbient0  | proxAmbient1  | proxAmbient2  | proxAmbient3  | proxAmbient5  | proxAmbient6  | proxAmbient7  | selector
+            // id=6 | proxAmbient4  | goundAmbient0 | goundAmbient1 | goundAmbient2 | goundAmbient3 | accZ          | battery       | free byte
+            switch ((int) ((unsigned char) RX_buffer[ROBOT_MSG*i + i])) {
+                case 3:
+                    proxValue[currPacketId * BULK_NB + i][0] = (((signed int) RX_buffer[ROBOT_MSG*i + i + 2] << 8) |
+                                                                (unsigned char) RX_buffer[ROBOT_MSG*i + i +1]);
+                    proxValue[currPacketId * BULK_NB + i][1] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +4] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +3];
+                    proxValue[currPacketId * BULK_NB + i][2] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +6] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +5];
+                    proxValue[currPacketId * BULK_NB + i][3] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +8] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +7];
+                    proxValue[currPacketId * BULK_NB + i][5] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +10] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +9];
+                    proxValue[currPacketId * BULK_NB + i][6] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +12] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +11];
+                    proxValue[currPacketId * BULK_NB + i][7] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +14] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +13];
+                    flagsRX[currPacketId * BULK_NB + i] = (unsigned char) RX_buffer[ROBOT_MSG*i + i +15];
+                    break;
 
-            case 5:
-                proxAmbientValue[currPacketId*4+0][0] = ((signed int)RX_buffer[2]<<8)|(unsigned char)RX_buffer[1];
-                proxAmbientValue[currPacketId*4+0][1] = ((signed int)RX_buffer[4]<<8)|(unsigned char)RX_buffer[3];
-                proxAmbientValue[currPacketId*4+0][2] = ((signed int)RX_buffer[6]<<8)|(unsigned char)RX_buffer[5];
-                proxAmbientValue[currPacketId*4+0][3] = ((signed int)RX_buffer[8]<<8)|(unsigned char)RX_buffer[7];
-                proxAmbientValue[currPacketId*4+0][5] = ((signed int)RX_buffer[10]<<8)|(unsigned char)RX_buffer[9];
-                proxAmbientValue[currPacketId*4+0][6] = ((signed int)RX_buffer[12]<<8)|(unsigned char)RX_buffer[11];
-                proxAmbientValue[currPacketId*4+0][7] = ((signed int)RX_buffer[14]<<8)|(unsigned char)RX_buffer[13];
-                selector[currPacketId*4+0] = (unsigned char)RX_buffer[15];
-                break;
+                case 4:
+                    proxValue[currPacketId * BULK_NB + i][4] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +2] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +1];
+                    groundValue[currPacketId * BULK_NB + i][0] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +4] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +3];
+                    groundValue[currPacketId * BULK_NB + i][1] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +6] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +5];
+                    groundValue[currPacketId * BULK_NB + i][2] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +8] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +7];
+                    groundValue[currPacketId * BULK_NB + i][3] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +10] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +9];
+                    accX[currPacketId * BULK_NB + i] = (int) ((RX_buffer[ROBOT_MSG*i + i +12] << 8) | (RX_buffer[ROBOT_MSG*i + i +11]));
+                    accY[currPacketId * BULK_NB + i] = (int) ((RX_buffer[ROBOT_MSG*i + i +14] << 8) | (RX_buffer[ROBOT_MSG*i + i +13]));
+                    tvRemote[currPacketId * BULK_NB + i] = (unsigned char) RX_buffer[ROBOT_MSG*i + i +15];
+                    break;
 
-            case 6:
-                proxAmbientValue[currPacketId*4+0][4] = ((signed int)RX_buffer[2]<<8)|(unsigned char)RX_buffer[1];
-                groundAmbientValue[currPacketId*4+0][0] = ((signed int)RX_buffer[4]<<8)|(unsigned char)RX_buffer[3];
-                groundAmbientValue[currPacketId*4+0][1] = ((signed int)RX_buffer[6]<<8)|(unsigned char)RX_buffer[5];
-                groundAmbientValue[currPacketId*4+0][2] = ((signed int)RX_buffer[8]<<8)|(unsigned char)RX_buffer[7];
-                groundAmbientValue[currPacketId*4+0][3] = ((signed int)RX_buffer[10]<<8)|(unsigned char)RX_buffer[9];
-                accZ[currPacketId*4+0] = (int)((RX_buffer[12]<<8)|(RX_buffer[11]));
-                batteryAdc[currPacketId*4+0] = ((signed int)RX_buffer[14]<<8)|(unsigned char)RX_buffer[13];
-                // RX_buffer[15] is free
-                break;
+                case 5:
+                    //proxAmbientValue[currPacketId * BULK_NB + i][0] =
+                    //        ((signed int) RX_buffer[ROBOT_MSG*i + i +2] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +1];
+                    //proxAmbientValue[currPacketId * BULK_NB + i][1] =
+                    //        ((signed int) RX_buffer[ROBOT_MSG*i + i +4] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +3];
+                    //proxAmbientValue[currPacketId * BULK_NB + i][2] =
+                    //        ((signed int) RX_buffer[ROBOT_MSG*i + i +6] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +5];
+                    //proxAmbientValue[currPacketId * BULK_NB + i][3] =
+                    //        ((signed int) RX_buffer[ROBOT_MSG*i + i +8] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +7];
+                    init_time[currPacketId * BULK_NB + i] = ((signed long) ((unsigned char) RX_buffer[ROBOT_MSG*i + i +4] << 24) |
+                                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +3] << 16) |
+                                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +2] << 8) |
+                                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +1]));
+                    comm_time[currPacketId * BULK_NB + i] = ((signed long) ((unsigned char) RX_buffer[ROBOT_MSG*i + i +8] << 24) |
+                                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +7] << 16) |
+                                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +6] << 8) |
+                                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +5]));
+                    if ((((unsigned int) RX_buffer[ROBOT_MSG*i + i + 9])&0x80) == 0x80) {
+                        rSpeed[currPacketId * BULK_NB + i] =   ((unsigned int) RX_buffer[ROBOT_MSG*i + i + 9])&0x7F;
+                    }else{
+                        rSpeed[currPacketId * BULK_NB + i] =   -(((unsigned int) RX_buffer[ROBOT_MSG*i + i + 9])&0x7F);
+                    }
+                    turn[currPacketId * BULK_NB + i] =   ((unsigned int) RX_buffer[ROBOT_MSG*i + i + 10]);
+                    testing[currPacketId * BULK_NB + i] =
+                            ((((signed int) RX_buffer[ROBOT_MSG*i + i +12] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +11])/10);
+                    reset_count[currPacketId * BULK_NB + i] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +14] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +13];
+                    selector[currPacketId * BULK_NB + i] = (unsigned char) RX_buffer[ROBOT_MSG*i + i +15];
+                    break;
 
-            case 7:
-                leftMotSteps[currPacketId*4+0] = ((signed long)((unsigned char)RX_buffer[4]<<24)| ((unsigned char)RX_buffer[3]<<16)| ((unsigned char)RX_buffer[2]<<8)|((unsigned char)RX_buffer[1]));
-                rightMotSteps[currPacketId*4+0] = ((signed long)((unsigned char)RX_buffer[8]<<24)| ((unsigned char)RX_buffer[7]<<16)| ((unsigned char)RX_buffer[6]<<8)|((unsigned char)RX_buffer[5]));
-                robTheta[currPacketId*4+0] = ((((signed int)RX_buffer[10]<<8)|(unsigned char)RX_buffer[9])/10);//%360;
-                robXPos[currPacketId*4+0] = ((signed int)RX_buffer[12]<<8)|(unsigned char)RX_buffer[11];
-                robYPos[currPacketId*4+0] = ((signed int)RX_buffer[14]<<8)|(unsigned char)RX_buffer[13];
-                break;
-        }
-    }
+                case 6:
+                    //proxAmbientValue[currPacketId * BULK_NB + i][4] =
+                    //        ((signed int) RX_buffer[ROBOT_MSG*i + i +2] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +1];
+                    //groundAmbientValue[currPacketId * BULK_NB + i][0] =
+                    //        ((signed int) RX_buffer[ROBOT_MSG*i + i +4] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +3];
+                    //groundAmbientValue[currPacketId * BULK_NB + i][1] =
+                    //        ((signed int) RX_buffer[ROBOT_MSG*i + i +6] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +5];
+                    //groundAmbientValue[currPacketId * BULK_NB + i][2] =
+                    //        ((signed int) RX_buffer[ROBOT_MSG*i + i +8] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +7];
+                    loop_time[currPacketId * BULK_NB + i] = ((signed long) ((unsigned char) RX_buffer[ROBOT_MSG*i + i +4] << 24) |
+                                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +3] << 16) |
+                                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +2] << 8) |
+                                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +1]));
+                    control_time[currPacketId * BULK_NB + i] = ((signed long) ((unsigned char) RX_buffer[ROBOT_MSG*i + i +8] << 24) |
+                                                                ((unsigned char) RX_buffer[ROBOT_MSG*i + i +7] << 16) |
+                                                                ((unsigned char) RX_buffer[ROBOT_MSG*i + i +6] << 8) |
+                                                                ((unsigned char) RX_buffer[ROBOT_MSG*i + i +5]));
+                    speed_temp[currPacketId * BULK_NB + i] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +10] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +9];
+                    accZ[currPacketId * BULK_NB + i] = (int) ((RX_buffer[ROBOT_MSG*i + i +12] << 8) | (RX_buffer[ROBOT_MSG*i + i +11]));
+                    robXPos_temp1[currPacketId * BULK_NB + i] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +14] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +13];
+                    //trigger_count[currPacketId * BULK_NB + i] = ((unsigned int) RX_buffer[ROBOT_MSG*i + i +15] << 8);
 
-    if((int)((unsigned char)RX_buffer[16])<=2) { // if something goes wrong skip the data
-        //printf("transfer failed to robot %d (addr=%d)\n", 1, currAddress[1]);
-        numOfErrors[currPacketId*4+1]++;
-    } else {
-        if(lastMessageSentFlag[currPacketId*4+1]==2) {
-            lastMessageSentFlag[currPacketId*4+1]=3;
-        }
-        switch((int)((unsigned char)RX_buffer[16])) {
-            case 3:
-                proxValue[currPacketId*4+1][0] = (((signed int)RX_buffer[18]<<8)|(unsigned char)RX_buffer[17]);
-                proxValue[currPacketId*4+1][1] = ((signed int)RX_buffer[20]<<8)|(unsigned char)RX_buffer[19];
-                proxValue[currPacketId*4+1][2] = ((signed int)RX_buffer[22]<<8)|(unsigned char)RX_buffer[21];
-                proxValue[currPacketId*4+1][3] = ((signed int)RX_buffer[24]<<8)|(unsigned char)RX_buffer[23];
-                proxValue[currPacketId*4+1][5] = ((signed int)RX_buffer[26]<<8)|(unsigned char)RX_buffer[25];
-                proxValue[currPacketId*4+1][6] = ((signed int)RX_buffer[28]<<8)|(unsigned char)RX_buffer[27];
-                proxValue[currPacketId*4+1][7] = ((signed int)RX_buffer[30]<<8)|(unsigned char)RX_buffer[29];
-                flagsRX[currPacketId*4+1] = (unsigned char)RX_buffer[31];
-                break;
+                    if (speed_temp[currPacketId * BULK_NB + i] > speed_max){
+                        speed_max = speed_temp[currPacketId * BULK_NB + i];
+                    }else if (speed_temp[currPacketId * BULK_NB + i] < -speed_max){
+                        speed_max = -speed_temp[currPacketId * BULK_NB + i];
+                    }
 
-            case 4:
-                proxValue[currPacketId*4+1][4] = ((signed int)RX_buffer[18]<<8)|(unsigned char)RX_buffer[17];
-                groundValue[currPacketId*4+1][0] = ((signed int)RX_buffer[20]<<8)|(unsigned char)RX_buffer[19];
-                groundValue[currPacketId*4+1][1] = ((signed int)RX_buffer[22]<<8)|(unsigned char)RX_buffer[21];
-                groundValue[currPacketId*4+1][2] = ((signed int)RX_buffer[24]<<8)|(unsigned char)RX_buffer[23];
-                groundValue[currPacketId*4+1][3] = ((signed int)RX_buffer[26]<<8)|(unsigned char)RX_buffer[25];
-                accX[currPacketId*4+1] = (int)((RX_buffer[28]<<8)|(RX_buffer[27]));
-                accY[currPacketId*4+1] = (int)((RX_buffer[30]<<8)|(RX_buffer[29]));
-                tvRemote[currPacketId*4+1] = (unsigned char)RX_buffer[31];
-                break;
+                    break;
 
-            case 5:
-                proxAmbientValue[currPacketId*4+1][0] = ((signed int)RX_buffer[18]<<8)|(unsigned char)RX_buffer[17];
-                proxAmbientValue[currPacketId*4+1][1] = ((signed int)RX_buffer[20]<<8)|(unsigned char)RX_buffer[19];
-                proxAmbientValue[currPacketId*4+1][2] = ((signed int)RX_buffer[22]<<8)|(unsigned char)RX_buffer[21];
-                proxAmbientValue[currPacketId*4+1][3] = ((signed int)RX_buffer[24]<<8)|(unsigned char)RX_buffer[23];
-                proxAmbientValue[currPacketId*4+1][5] = ((signed int)RX_buffer[26]<<8)|(unsigned char)RX_buffer[25];
-                proxAmbientValue[currPacketId*4+1][6] = ((signed int)RX_buffer[28]<<8)|(unsigned char)RX_buffer[27];
-                proxAmbientValue[currPacketId*4+1][7] = ((signed int)RX_buffer[30]<<8)|(unsigned char)RX_buffer[29];
-                selector[currPacketId*4+1] = (unsigned char)RX_buffer[31];
-                break;
-
-            case 6:
-                proxAmbientValue[currPacketId*4+1][4] = ((signed int)RX_buffer[18]<<8)|(unsigned char)RX_buffer[17];
-                groundAmbientValue[currPacketId*4+1][0] = ((signed int)RX_buffer[20]<<8)|(unsigned char)RX_buffer[19];
-                groundAmbientValue[currPacketId*4+1][1] = ((signed int)RX_buffer[22]<<8)|(unsigned char)RX_buffer[21];
-                groundAmbientValue[currPacketId*4+1][2] = ((signed int)RX_buffer[24]<<8)|(unsigned char)RX_buffer[23];
-                groundAmbientValue[currPacketId*4+1][3] = ((signed int)RX_buffer[26]<<8)|(unsigned char)RX_buffer[25];
-                accZ[currPacketId*4+1] = (int)((RX_buffer[28]<<8)|(RX_buffer[27]));
-                batteryAdc[currPacketId*4+1] = ((signed int)RX_buffer[30]<<8)|(unsigned char)RX_buffer[29];
-                // RX_buffer[31] is free
-                break;
-
-            case 7:
-                leftMotSteps[currPacketId*4+1] = ((signed long)((unsigned char)RX_buffer[20]<<24)| ((unsigned char)RX_buffer[19]<<16)| ((unsigned char)RX_buffer[18]<<8)|((unsigned char)RX_buffer[17]));
-                rightMotSteps[currPacketId*4+1] = ((signed long)((unsigned char)RX_buffer[24]<<24)| ((unsigned char)RX_buffer[23]<<16)| ((unsigned char)RX_buffer[22]<<8)|((unsigned char)RX_buffer[21]));
-                robTheta[currPacketId*4+1] = ((((signed int)RX_buffer[26]<<8)|(unsigned char)RX_buffer[25])/10);//%360;
-                robXPos[currPacketId*4+1] = ((signed int)RX_buffer[28]<<8)|(unsigned char)RX_buffer[27];
-                robYPos[currPacketId*4+1] = ((signed int)RX_buffer[30]<<8)|(unsigned char)RX_buffer[29];
-                break;
-        }
-    }
-
-    if((int)((unsigned char)RX_buffer[32])<=2) { // if something goes wrong skip the data
-        //printf("transfer failed to robot %d (addr=%d)\n", 2, currAddress[2]);
-        numOfErrors[currPacketId*4+2]++;
-    } else {
-        if(lastMessageSentFlag[currPacketId*4+2]==2) {
-            lastMessageSentFlag[currPacketId*4+2]=3;
-        }
-        switch((int)((unsigned char)RX_buffer[32])) {
-            case 3:
-                proxValue[currPacketId*4+2][0] = (((signed int)RX_buffer[34]<<8)|(unsigned char)RX_buffer[33]);
-                proxValue[currPacketId*4+2][1] = ((signed int)RX_buffer[36]<<8)|(unsigned char)RX_buffer[35];
-                proxValue[currPacketId*4+2][2] = ((signed int)RX_buffer[38]<<8)|(unsigned char)RX_buffer[37];
-                proxValue[currPacketId*4+2][3] = ((signed int)RX_buffer[40]<<8)|(unsigned char)RX_buffer[39];
-                proxValue[currPacketId*4+2][5] = ((signed int)RX_buffer[42]<<8)|(unsigned char)RX_buffer[41];
-                proxValue[currPacketId*4+2][6] = ((signed int)RX_buffer[44]<<8)|(unsigned char)RX_buffer[43];
-                proxValue[currPacketId*4+2][7] = ((signed int)RX_buffer[46]<<8)|(unsigned char)RX_buffer[45];
-                flagsRX[currPacketId*4+2] = (unsigned char)RX_buffer[47];
-                break;
-
-            case 4:
-                proxValue[currPacketId*4+2][4] = ((signed int)RX_buffer[34]<<8)|(unsigned char)RX_buffer[33];
-                groundValue[currPacketId*4+2][0] = ((signed int)RX_buffer[36]<<8)|(unsigned char)RX_buffer[35];
-                groundValue[currPacketId*4+2][1] = ((signed int)RX_buffer[38]<<8)|(unsigned char)RX_buffer[37];
-                groundValue[currPacketId*4+2][2] = ((signed int)RX_buffer[40]<<8)|(unsigned char)RX_buffer[39];
-                groundValue[currPacketId*4+2][3] = ((signed int)RX_buffer[42]<<8)|(unsigned char)RX_buffer[41];
-                accX[currPacketId*4+2] = (int)((RX_buffer[44]<<8)|(RX_buffer[43]));
-                accY[currPacketId*4+2] = (int)((RX_buffer[46]<<8)|(RX_buffer[45]));
-                tvRemote[currPacketId*4+2] = (unsigned char)RX_buffer[47];
-                break;
-
-            case 5:
-                proxAmbientValue[currPacketId*4+2][0] = ((signed int)RX_buffer[34]<<8)|(unsigned char)RX_buffer[33];
-                proxAmbientValue[currPacketId*4+2][1] = ((signed int)RX_buffer[36]<<8)|(unsigned char)RX_buffer[35];
-                proxAmbientValue[currPacketId*4+2][2] = ((signed int)RX_buffer[38]<<8)|(unsigned char)RX_buffer[37];
-                proxAmbientValue[currPacketId*4+2][3] = ((signed int)RX_buffer[40]<<8)|(unsigned char)RX_buffer[39];
-                proxAmbientValue[currPacketId*4+2][5] = ((signed int)RX_buffer[42]<<8)|(unsigned char)RX_buffer[41];
-                proxAmbientValue[currPacketId*4+2][6] = ((signed int)RX_buffer[44]<<8)|(unsigned char)RX_buffer[43];
-                proxAmbientValue[currPacketId*4+2][7] = ((signed int)RX_buffer[46]<<8)|(unsigned char)RX_buffer[45];
-                selector[currPacketId*4+2] = (unsigned char)RX_buffer[47];
-                break;
-
-            case 6:
-                proxAmbientValue[currPacketId*4+2][4] = ((signed int)RX_buffer[34]<<8)|(unsigned char)RX_buffer[33];
-                groundAmbientValue[currPacketId*4+2][0] = ((signed int)RX_buffer[36]<<8)|(unsigned char)RX_buffer[35];
-                groundAmbientValue[currPacketId*4+2][1] = ((signed int)RX_buffer[38]<<8)|(unsigned char)RX_buffer[37];
-                groundAmbientValue[currPacketId*4+2][2] = ((signed int)RX_buffer[40]<<8)|(unsigned char)RX_buffer[39];
-                groundAmbientValue[currPacketId*4+2][3] = ((signed int)RX_buffer[42]<<8)|(unsigned char)RX_buffer[41];
-                accZ[currPacketId*4+2] = (int)((RX_buffer[44]<<8)|(RX_buffer[43]));
-                batteryAdc[currPacketId*4+2] = ((signed int)RX_buffer[46]<<8)|(unsigned char)RX_buffer[45];
-                // RX_buffer[47] is free
-                break;
-
-            case 7:
-                leftMotSteps[currPacketId*4+2] = ((signed long)((unsigned char)RX_buffer[36]<<24)| ((unsigned char)RX_buffer[35]<<16)| ((unsigned char)RX_buffer[34]<<8)|((unsigned char)RX_buffer[33]));
-                rightMotSteps[currPacketId*4+2] = ((signed long)((unsigned char)RX_buffer[40]<<24)| ((unsigned char)RX_buffer[39]<<16)| ((unsigned char)RX_buffer[38]<<8)|((unsigned char)RX_buffer[37]));
-                robTheta[currPacketId*4+2] = ((((signed int)RX_buffer[42]<<8)|(unsigned char)RX_buffer[41])/10);//%360;
-                robXPos[currPacketId*4+2] = ((signed int)RX_buffer[44]<<8)|(unsigned char)RX_buffer[43];
-                robYPos[currPacketId*4+2] = ((signed int)RX_buffer[46]<<8)|(unsigned char)RX_buffer[45];
-                break;
+                case 7:
+                    //leftMotSteps[currPacketId * BULK_NB + i] = ((signed long) ((unsigned char) RX_buffer[ROBOT_MSG*i + i +4] << 24) |
+                    //                                            ((unsigned char) RX_buffer[ROBOT_MSG*i + i +3] << 16) |
+                    //                                            ((unsigned char) RX_buffer[ROBOT_MSG*i + i +2] << 8) |
+                    //                                            ((unsigned char) RX_buffer[ROBOT_MSG*i + i +1]));
+                    //rightMotSteps[currPacketId * BULK_NB + i] = ((signed long) ((unsigned char) RX_buffer[ROBOT_MSG*i + i +8] << 24) |
+                    //                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +7] << 16) |
+                    //                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +6] << 8) |
+                    //                                             ((unsigned char) RX_buffer[ROBOT_MSG*i + i +5]));
+                    robXPos_fixed[currPacketId * BULK_NB + i] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +2] << 8) |  (unsigned char) RX_buffer[ROBOT_MSG*i + i +1];
+                    robYPos_fixed[currPacketId * BULK_NB + i] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +4] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +3];
+                    trigger_count[currPacketId * BULK_NB + i] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +6] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +5];
+                    robYPos_temp1[currPacketId * BULK_NB + i] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +8] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +7];
+                    robTheta[currPacketId * BULK_NB + i] = (
+                            (((signed int) RX_buffer[ROBOT_MSG*i + i +10] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +9]) / 10);//%360;
+                    robXPos[currPacketId * BULK_NB + i] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +12] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +11];
+                    robYPos[currPacketId * BULK_NB + i] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +14] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +13];
+                    //printf("Received pos:: %d with value: %d, %d \n", i, robXPos_temp[currPacketId * BULK_NB + i],  robYPos_temp[currPacketId * BULK_NB + i]);
+                    //printf("pos:: %d with value: %d, %d \n", i, robXPos_temp1[currPacketId * BULK_NB + i],  robYPos_temp1[currPacketId * BULK_NB + i]);
+                    break;
+            }
         }
     }
 
-    if((int)((unsigned char)RX_buffer[48])<=2) { // if something goes wrong skip the data
-        //printf("transfer failed to robot %d (addr=%d)\n", 3, currAddress[3]);
-        numOfErrors[currPacketId*4+3]++;
-    } else {
-        if(lastMessageSentFlag[currPacketId*4+3]==2) {
-            lastMessageSentFlag[currPacketId*4+3]=3;
-        }
-        switch((int)((unsigned char)RX_buffer[48])) {
-            case 3:
-                proxValue[currPacketId*4+3][0] = (((signed int)RX_buffer[50]<<8)|(unsigned char)RX_buffer[49]);
-                proxValue[currPacketId*4+3][1] = ((signed int)RX_buffer[52]<<8)|(unsigned char)RX_buffer[51];
-                proxValue[currPacketId*4+3][2] = ((signed int)RX_buffer[54]<<8)|(unsigned char)RX_buffer[53];
-                proxValue[currPacketId*4+3][3] = ((signed int)RX_buffer[56]<<8)|(unsigned char)RX_buffer[55];
-                proxValue[currPacketId*4+3][5] = ((signed int)RX_buffer[58]<<8)|(unsigned char)RX_buffer[57];
-                proxValue[currPacketId*4+3][6] = ((signed int)RX_buffer[60]<<8)|(unsigned char)RX_buffer[59];
-                proxValue[currPacketId*4+3][7] = ((signed int)RX_buffer[62]<<8)|(unsigned char)RX_buffer[61];
-                flagsRX[currPacketId*4+3] = (unsigned char)RX_buffer[63];
-                break;
-
-            case 4:
-                proxValue[currPacketId*4+3][4] = ((signed int)RX_buffer[50]<<8)|(unsigned char)RX_buffer[49];
-                groundValue[currPacketId*4+3][0] = ((signed int)RX_buffer[52]<<8)|(unsigned char)RX_buffer[51];
-                groundValue[currPacketId*4+3][1] = ((signed int)RX_buffer[54]<<8)|(unsigned char)RX_buffer[53];
-                groundValue[currPacketId*4+3][2] = ((signed int)RX_buffer[56]<<8)|(unsigned char)RX_buffer[55];
-                groundValue[currPacketId*4+3][3] = ((signed int)RX_buffer[58]<<8)|(unsigned char)RX_buffer[57];
-                accX[currPacketId*4+3] = (int)((RX_buffer[60]<<8)|(RX_buffer[59]));
-                accY[currPacketId*4+3] = (int)((RX_buffer[62]<<8)|(RX_buffer[61]));
-                tvRemote[currPacketId*4+3] = (unsigned char)RX_buffer[63];
-                break;
-
-            case 5:
-                proxAmbientValue[currPacketId*4+3][0] = ((signed int)RX_buffer[50]<<8)|(unsigned char)RX_buffer[49];
-                proxAmbientValue[currPacketId*4+3][1] = ((signed int)RX_buffer[52]<<8)|(unsigned char)RX_buffer[51];
-                proxAmbientValue[currPacketId*4+3][2] = ((signed int)RX_buffer[54]<<8)|(unsigned char)RX_buffer[53];
-                proxAmbientValue[currPacketId*4+3][3] = ((signed int)RX_buffer[56]<<8)|(unsigned char)RX_buffer[55];
-                proxAmbientValue[currPacketId*4+3][5] = ((signed int)RX_buffer[58]<<8)|(unsigned char)RX_buffer[57];
-                proxAmbientValue[currPacketId*4+3][6] = ((signed int)RX_buffer[60]<<8)|(unsigned char)RX_buffer[59];
-                proxAmbientValue[currPacketId*4+3][7] = ((signed int)RX_buffer[62]<<8)|(unsigned char)RX_buffer[61];
-                selector[currPacketId*4+3] = (unsigned char)RX_buffer[63];
-                break;
-
-            case 6:
-                proxAmbientValue[currPacketId*4+3][4] = ((signed int)RX_buffer[50]<<8)|(unsigned char)RX_buffer[49];
-                groundAmbientValue[currPacketId*4+3][0] = ((signed int)RX_buffer[52]<<8)|(unsigned char)RX_buffer[51];
-                groundAmbientValue[currPacketId*4+3][1] = ((signed int)RX_buffer[54]<<8)|(unsigned char)RX_buffer[53];
-                groundAmbientValue[currPacketId*4+3][2] = ((signed int)RX_buffer[56]<<8)|(unsigned char)RX_buffer[55];
-                groundAmbientValue[currPacketId*4+3][3] = ((signed int)RX_buffer[58]<<8)|(unsigned char)RX_buffer[57];
-                accZ[currPacketId*4+3] = (int)((RX_buffer[60]<<8)|(RX_buffer[59]));
-                batteryAdc[currPacketId*4+3] = ((signed int)RX_buffer[62]<<8)|(unsigned char)RX_buffer[61];
-                // RX_buffer[15] is free
-                break;
-
-            case 7:
-                leftMotSteps[currPacketId*4+3] = ((signed long)((unsigned char)RX_buffer[52]<<24)| ((unsigned char)RX_buffer[51]<<16)| ((unsigned char)RX_buffer[50]<<8)|((unsigned char)RX_buffer[49]));
-                rightMotSteps[currPacketId*4+3] = ((signed long)((unsigned char)RX_buffer[56]<<24)| ((unsigned char)RX_buffer[55]<<16)| ((unsigned char)RX_buffer[54]<<8)|((unsigned char)RX_buffer[53]));
-                robTheta[currPacketId*4+3] = ((((signed int)RX_buffer[58]<<8)|(unsigned char)RX_buffer[57])/10);//%360;
-                robXPos[currPacketId*4+3] = ((signed int)RX_buffer[60]<<8)|(unsigned char)RX_buffer[59];
-                robYPos[currPacketId*4+3] = ((signed int)RX_buffer[62]<<8)|(unsigned char)RX_buffer[61];
-                break;
-        }
-    }
 
 #ifdef _WIN32
     ReleaseMutex(mutexRx);
@@ -1918,7 +2303,7 @@ DWORD WINAPI CommThread( LPVOID lpParameter) {
         transferData();
 
         currPacketId++;
-        if(currPacketId>=(currNumRobots/4)) {
+        if(currPacketId>=(currNumRobots/BULK_NB)) {
             currPacketId = 0;
         }
 
@@ -1965,6 +2350,7 @@ void *CommThread(void *arg) {
 	gettimeofday(&txTimeRF, NULL);
 	gettimeofday(&exitTime, NULL);
 
+
     while(1) {
 
         if(stopTransmissionFlag==1) {
@@ -1976,6 +2362,18 @@ void *CommThread(void *arg) {
         currPacketId++;
         if(currPacketId>=(currNumRobots/4)) {
             currPacketId = 0;
+			currRobotId++;
+            currRobotId_L++;
+        }
+
+        //printf("currRobotId: %d, %d \n", currRobotId, (ROBOTS/3));
+        if(currRobotId>(ROBOTS/3)) {
+            currRobotId = 0;
+        }
+
+        if(currRobotId_L>(ROBOTS/6)) {
+            currRobotId_L = 0;
+            //nb_init_rounds++;
         }
 
         while(1) {
@@ -2004,6 +2402,4 @@ void *CommThread(void *arg) {
 
 }
 #endif
-
-
 

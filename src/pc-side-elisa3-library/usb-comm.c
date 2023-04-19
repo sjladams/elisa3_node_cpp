@@ -42,7 +42,7 @@ int usb_receive(char* data, int nbytes) {
 
 	r = libusb_bulk_transfer(devh, 0x81, (unsigned char*)data, nbytes, &received, 5000);
 	if (r < 0) {
-		fprintf(stderr, "bulk read error %d\n", r);
+		fprintf(stderr, "bulk read error test %d, %s\n", r,  libusb_error_name(r));
 		return r;
 	}
 	if (received < nbytes) {
