@@ -8,6 +8,8 @@ This package is maintained by [GCtronic](http://www.gctronic.com/).
 #Adjustments to package
 The communication protocol in the Elisa3 library has been adjusted to allow for the execution of three formation algorithms: ETC, PETC and phase. To adjust the type of formation, number of robots and/or the communication topology, adjust the inter-distance matrices Bx and By, the number of ROBOTS, and the Laplacian matric L respectively in the elisa3-lib.c file. 
 
+Examples of L, Bx, By matrices have been provided in the formation folder for two types of communication topologies; hypercube (4 or 8 robots) and line (3 or 6 robots).
+
 ## How to use
 First update the firmware of the robots with the hex file. Once the firmware is updated, one of the three algorithms can be selected by using the physical selector on the robots:
 1. Selector 14: phase algorithm
