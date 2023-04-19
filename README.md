@@ -29,13 +29,13 @@ When the elisa3-lib.c file is update to allow for a different formation, do the 
     catkin_make
     
     
-Run the package by using: roslaunch elisa3_node_cpp elisa3_swarm.launch. 
+Run the package by using: roslaunch elisa3_node_cpp elisa3_swarm.launch.
+
+For detailed informations about the node refer to the [elisa-3 ROS wiki](http://www.gctronic.com/doc/index.php/Elisa-3#ROS).
 
 ## Errors
 It often happens that the robots do not start up correctly or the communication fails. When this happens the RVIZ simulation will not show all robots. The best way to fix this is by using the following steps:
 1. Make sure all robots are turned on and the selector is at the correct position
 2. restart the package a couple of times
 3. If all else fails, turn the robots on and off and start at step 1.
-
-For detailed informations about the node refer to the [elisa-3 ROS wiki](http://www.gctronic.com/doc/index.php/Elisa-3#ROS).
 
