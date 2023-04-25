@@ -80,17 +80,20 @@
 // - address: 2 bytes per robot
 
 //formation + laplacian
-int L[18][18] = {{1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-1, 2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-int Bx[18][18] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-int By[18][18] = {{-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-150, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-int error = 10; //in mm
+int L[18][18] = {{2, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-1, 2, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-1, 0, 2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, -1, -1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+int Bx[18][18] = {{0, 2, 234, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-2, 0, 0, -292, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-234, 0, 0, -524, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 292, 524, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+int By[18][18] = {{0, -558, -224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {558, 0, 0, 141, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {224, 0, 0, -193, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, -141, 193, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+//int By[18][18] = {{0, -250, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {250, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+
+
+int error = 20; //in mm
 int u_max = 30;
 float speed_max = 0;
 float speed_temp[100] = {0};
-bool reset_flag = false;
-bool reset_theta = false;
-const int ROBOTS = 3;
-unsigned int currNumRobots = 3;
+bool reset_flag[100] = {false};
+bool reset_theta[100] = {false};
+const int ROBOTS = 4;
+unsigned int currNumRobots = 4;
 
 //float testing = 0.0;
 // robots
@@ -119,7 +122,8 @@ signed long int leftMotSteps[100], rightMotSteps[100];
 signed int robTheta[100], robXPos[100], robYPos[100];
 signed int robTheta_filtered[100] = {0};
 signed int testing[100];
-signed int robXPos_fixed[100], robYPos_fixed[100], robXPos_temp1[100], robYPos_temp1[100];
+signed int robXPos_fixed[100], robYPos_fixed[100], robXPos_temp1[100];
+signed int robYPos_temp1[100]={0};
 unsigned int trigger_count[100];
 unsigned int reset_count[100] = {0};
 unsigned int trigger_count_previous[100];
@@ -156,8 +160,8 @@ unsigned char calibrationSent[100];
 unsigned char calibrateOdomSent[100];
 unsigned char stopTransmissionFlag = 0;
 unsigned int currPacketId = 0;
-unsigned int currRobotId = 0;
-unsigned int currRobotId_L = 0;
+signed int currRobotId = -1;
+signed int currRobotId_L = 0;
 unsigned int nb_init_rounds = 0;
 unsigned char usbCommOpenedFlag = 0;
 unsigned int neigh_id = ROBOTS+1;
@@ -202,16 +206,37 @@ int getIdFromAddress(int address) {
     return -1;
 }
 
-void enableReset(){
-    reset_flag = true;
+void enableReset(int address){
+    int i=0;
+    for(i=0; i<currNumRobots; i++) {
+        if(address == robotAddress[i]) {
+            break;
+        }
+    }
+
+    reset_flag[i] = true;
 }
 
-void resetTheta(){
-    reset_theta = true;
+void resetTheta(int address){
+    int i=0;
+    for(i=0; i<currNumRobots; i++) {
+        if(address == robotAddress[i]) {
+            break;
+        }
+    }
+
+    reset_theta[i] = true;
 }
 
-void disableReset(){
-    reset_flag = false;
+void disableReset(int address){
+    int i=0;
+    for(i=0; i<currNumRobots; i++) {
+        if(address == robotAddress[i]) {
+            break;
+        }
+    }
+
+    reset_flag[i] = false;
 }
 
 void startCommunication(int *robotAddr, int numRobots) {
@@ -1818,15 +1843,18 @@ void transferData() {
                 }
 
                 // Reset robot odometry
-                if (reset_flag ){
+                if (reset_flag[(currPacketId * BULK_NB + i)]){
                     TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] = 0xE0;
+                    disableReset((currPacketId * BULK_NB + i));
+                    reset_flag[(currPacketId * BULK_NB + i)] = false;
                 }else{
                     TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] = 0x00;
                 }
 
                 // Reset robot orientation
-                if (reset_theta){
+                if (reset_theta[(currPacketId * BULK_NB + i)]){
                     TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] |= 0x15;
+                    reset_theta[(currPacketId * BULK_NB + i)] = false;
                 }else{
                     TX_buffer[(i * ROBOT_PACKET_SIZE) + 5] |= 0x00;
                 }
@@ -1849,13 +1877,13 @@ void transferData() {
             TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
         }
 
-        if (reset_flag){
-            if ((currPacketId+1)>=(ROBOTS/BULK_NB)) {
-                disableReset();
-                reset_flag = false;
-                reset_theta = false;
-            }
-        }
+//        if (reset_flag){
+//            if ((currPacketId+1)>=(ROBOTS/BULK_NB)) {
+//                disableReset();
+//                reset_flag = false;
+//                reset_theta = false;
+//            }
+//        }
     }else{
         // Init packets
 
@@ -1863,7 +1891,7 @@ void transferData() {
         switch (type){
 
         case 0 :
-			printf("sending type 0\n");
+			printf("sending type 0, %d, %d\n", currPacketId, (int) ceil(currNumRobots/4.0));
             // update parameters
             for (i = 0; i < BULK_NB; i++) {
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = (currPacketId * BULK_NB + i) & 0xFF;
@@ -1894,7 +1922,7 @@ void transferData() {
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
             }
 
-            if ((currPacketId+1)>=(currNumRobots/BULK_NB)) {
+            if ((currPacketId+1)>=((int) ceil(currNumRobots/4.0))) {
                 type = 1;
             }
 
@@ -1902,7 +1930,7 @@ void transferData() {
             break;
         case 1 :
             // update positions
-			printf("sending type 1, %d\n", currRobotId);
+			printf("sending type 1, %d, %d\n", currPacketId, currRobotId);
             for (i = 0; i < BULK_NB; i++) {
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = (xPos[currRobotId * 3]) & 0xFF;
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + 2] = (xPos[currRobotId * 3]) >> 8 & 0xFF;
@@ -1930,16 +1958,18 @@ void transferData() {
             }
             //currRobotId += 3;
 
-            if ((robYPos_temp1[ROBOTS-1] > 0) && ((currPacketId+1)>=(currNumRobots/BULK_NB))){
+            if ((robYPos_temp1[ROBOTS-1] > 0) && ((currPacketId+1)>=((int) ceil(currNumRobots/4.0)))){
                 type = 2;
+                currRobotId_L = -1;
             }
 
             break;
 
         case 2 :
             // update L
-			printf("sending type 2\n");
+//			printf("sending type 2, %d, %d\n", currPacketId, currRobotId_L);
             for (i = 0; i < BULK_NB; i++) {
+                printf("sending type 2, %d, %d\n", currPacketId, currRobotId_L);
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3]) & 0xFF;
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + 2] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3]) >> 8 & 0xFF;
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + 3] = (L[currPacketId * BULK_NB + i][currRobotId_L * 3 + 1]) & 0xFF;
@@ -1965,9 +1995,9 @@ void transferData() {
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
             }
 
-            if ((currPacketId+1)>=(currNumRobots/BULK_NB) && (currRobotId_L+1)>=(ROBOTS/6)) {
+            if ((currPacketId+1)>=((int) ceil(currNumRobots/4.0)) && (currRobotId_L+1)>=(ROBOTS/6)) {
                 type = 3;
-                //currRobotId_L = 0;
+                currRobotId_L = -1;
             }
 
             break;
@@ -1976,7 +2006,7 @@ void transferData() {
             // update Bx // B[0]
 		
             for (i = 0; i < BULK_NB; i++) {
-				printf("sending type 3, Bx[%d][%d] %d\n", currPacketId * BULK_NB + i, currRobotId_L * 3 + 2 ,Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 2]);
+				printf("sending type 3, Bx[%d][%d] %d\n", currPacketId * BULK_NB + i, currRobotId_L * 3 + 2 ,Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 3]);
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3]) & 0xFF;
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + 2] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3]) >> 8 & 0xFF;
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + 3] = (Bx[currPacketId * BULK_NB + i][currRobotId_L * 3 + 1]) & 0xFF;
@@ -2002,14 +2032,14 @@ void transferData() {
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
             }
 
-            if ((currPacketId+1)>=(currNumRobots/BULK_NB) && (currRobotId_L+1)>=(ROBOTS/6)) {
+            if ((currPacketId+1)>=((int) ceil(currNumRobots/4.0)) && (currRobotId_L+1)>=(ROBOTS/6)) {
                 type = 4;
-                //currRobotId_L = 0;
+                currRobotId_L = -1;
             }
 
             break;
         case 4 :
-			printf("sending type 4\n");
+			printf("sending type 4, %d, %d\n", currPacketId, currRobotId_L);
             // update By // B[1]
             for (i = 0; i < BULK_NB; i++) {
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + 1] = (By[currPacketId * BULK_NB + i][currRobotId_L * 3]) & 0xFF;
@@ -2037,7 +2067,7 @@ void transferData() {
                 TX_buffer[(i * ROBOT_PACKET_SIZE) + ROBOT_MSG] = robotAddress[currPacketId * BULK_NB + i] & 0xFF;
             }
 
-            if ((currPacketId+1)>=(currNumRobots/BULK_NB) && (currRobotId_L+1)>=(ROBOTS/6)) {
+            if ((currPacketId+1)>=((int) ceil(currNumRobots/4.0)) && (currRobotId_L+1)>=(ROBOTS/6)) {
                 init_flag = true;
                 //currRobotId_L = 0;
             }
@@ -2122,12 +2152,13 @@ void transferData() {
     for (i = 0; i<BULK_NB; i++) {
 
         if ((int) ((unsigned char) RX_buffer[ROBOT_MSG*i + i]) <= 2) { // if something goes wrong skip the data
-            //printf("transfer failed to robot %d (addr=%d)\n", i, RX_buffer[ROBOT_MSG*i + i]);
+            //printf("transfer failed to robot %d, %d (addr=%d)\n", i, currPacketId ,RX_buffer[ROBOT_MSG*i + i]);
             numOfErrors[currPacketId * BULK_NB + i]++;
         } else {
             if (lastMessageSentFlag[currPacketId * BULK_NB + i] == 2) {
                 lastMessageSentFlag[currPacketId * BULK_NB + i] = 3;
             }
+            //printf("received robot %d, %d, type = %d \n", currPacketId, i, (int) ((unsigned char) RX_buffer[ROBOT_MSG*i + i]));
             // extract the sensors data for the first robot based on the packet id (first byte):
             // id=3 | prox0         | prox1         | prox2         | prox3         | prox5         | prox6         | prox7         | flags
             // id=4 | prox4         | gound0        | ground1       | ground2       | ground3       | accX          | accY          | tv remote
@@ -2211,13 +2242,16 @@ void transferData() {
                                                              ((unsigned char) RX_buffer[ROBOT_MSG*i + i +3] << 16) |
                                                              ((unsigned char) RX_buffer[ROBOT_MSG*i + i +2] << 8) |
                                                              ((unsigned char) RX_buffer[ROBOT_MSG*i + i +1]));
-                    control_time[currPacketId * BULK_NB + i] = ((signed long) ((unsigned char) RX_buffer[ROBOT_MSG*i + i +8] << 24) |
-                                                                ((unsigned char) RX_buffer[ROBOT_MSG*i + i +7] << 16) |
-                                                                ((unsigned char) RX_buffer[ROBOT_MSG*i + i +6] << 8) |
-                                                                ((unsigned char) RX_buffer[ROBOT_MSG*i + i +5]));
+//                    control_time[currPacketId * BULK_NB + i] = ((signed long) ((unsigned char) RX_buffer[ROBOT_MSG*i + i +8] << 24) |
+//                                                                ((unsigned char) RX_buffer[ROBOT_MSG*i + i +7] << 16) |
+//                                                                ((unsigned char) RX_buffer[ROBOT_MSG*i + i +6] << 8) |
+//                                                                ((unsigned char) RX_buffer[ROBOT_MSG*i + i +5]));
+                    reset_count[currPacketId * BULK_NB + i] =
+                            ((signed int) RX_buffer[ROBOT_MSG*i + i +8] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +7];
                     speed_temp[currPacketId * BULK_NB + i] =
                             ((signed int) RX_buffer[ROBOT_MSG*i + i +10] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +9];
                     accZ[currPacketId * BULK_NB + i] = (int) ((RX_buffer[ROBOT_MSG*i + i +12] << 8) | (RX_buffer[ROBOT_MSG*i + i +11]));
+                    robYPos_temp1[currPacketId * BULK_NB + i] = ((signed int) RX_buffer[ROBOT_MSG*i + i +12] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +11];
                     robXPos_temp1[currPacketId * BULK_NB + i] =
                             ((signed int) RX_buffer[ROBOT_MSG*i + i +14] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +13];
                     //trigger_count[currPacketId * BULK_NB + i] = ((unsigned int) RX_buffer[ROBOT_MSG*i + i +15] << 8);
@@ -2245,16 +2279,18 @@ void transferData() {
                             ((signed int) RX_buffer[ROBOT_MSG*i + i +4] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +3];
                     trigger_count[currPacketId * BULK_NB + i] =
                             ((signed int) RX_buffer[ROBOT_MSG*i + i +6] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +5];
-                    robYPos_temp1[currPacketId * BULK_NB + i] =
-                            ((signed int) RX_buffer[ROBOT_MSG*i + i +8] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +7];
+                    //robYPos_temp1[currPacketId * BULK_NB + i] =
+                    //        ((signed int) RX_buffer[ROBOT_MSG*i + i +8] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +7];
+                    turn[currPacketId * BULK_NB + i] =   ((unsigned int) RX_buffer[ROBOT_MSG*i + i + 7]);
+                    //robYPos_temp1[currPacketId * BULK_NB + i] =| (unsigned char) RX_buffer[ROBOT_MSG*i + i +7];
                     robTheta[currPacketId * BULK_NB + i] = (
                             (((signed int) RX_buffer[ROBOT_MSG*i + i +10] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +9]) / 10);//%360;
                     robXPos[currPacketId * BULK_NB + i] =
                             ((signed int) RX_buffer[ROBOT_MSG*i + i +12] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +11];
                     robYPos[currPacketId * BULK_NB + i] =
                             ((signed int) RX_buffer[ROBOT_MSG*i + i +14] << 8) | (unsigned char) RX_buffer[ROBOT_MSG*i + i +13];
-                    //printf("Received pos:: %d with value: %d, %d \n", i, robXPos_temp[currPacketId * BULK_NB + i],  robYPos_temp[currPacketId * BULK_NB + i]);
-                    //printf("pos:: %d with value: %d, %d \n", i, robXPos_temp1[currPacketId * BULK_NB + i],  robYPos_temp1[currPacketId * BULK_NB + i]);
+                    printf("Received pos:: %d, %d with value: %d, %d \n", i, currPacketId * BULK_NB + i, robXPos[currPacketId * BULK_NB + i],  robYPos[currPacketId * BULK_NB + i]);
+                    //printf("pos:: %d, %d, %d, with value: %d, %d \n", i, robXPos_temp1[currPacketId * BULK_NB + i],  robYPos_temp1[currPacketId * BULK_NB + i]);
                     break;
             }
         }
@@ -2360,10 +2396,15 @@ void *CommThread(void *arg) {
         transferData();
 
         currPacketId++;
-        if(currPacketId>=(currNumRobots/4)) {
+        if(currPacketId>=((int) ceil(currNumRobots/4.0))) {
             currPacketId = 0;
-			currRobotId++;
-            currRobotId_L++;
+
+            if (type == 1){
+			    currRobotId++;
+			}
+			if (type > 1){
+                currRobotId_L++;
+            }
         }
 
         //printf("currRobotId: %d, %d \n", currRobotId, (ROBOTS/3));
@@ -2402,4 +2443,5 @@ void *CommThread(void *arg) {
 
 }
 #endif
+
 

@@ -53,7 +53,7 @@
 #define BLUE_LEDS_MOVE 6
 #define GREEN_LEDS_RESET 7
 
-#define WHEEL_DISTANCE 0.041		// Distance between wheels in meters (axis length). -
+#define WHEEL_DISTANCE 0.041		// Distance between wheels in meters (axis length)
 #define ROBOT_RADIUS 0.025			// meters.
 
 // new variables
@@ -62,13 +62,12 @@
 
 #define COLLISION_VLT 5
 
-int Bx_sup[18][18] = {{0, -121, 78, -43, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {121, 0, 199, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-78, -199, 0, -121, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {43, -78, 121, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-int By_sup[18][18] = {{0, 77, 121, 198, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-77, 0, 43, 121, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-121, -43, 0, 77, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-198, -121, -77, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-
+int Bx_sup[18][18] = {{0, 65, 195, 259, 194, 65, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-65, 0, 130, 194, 129, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-195, -130, 0, 64, 0, -129, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-259, -194, -64, 0, -65, -194, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-194, -129, 0, 65, 0, -129, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-65, 0, 129, 194, 129, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+int By_sup[18][18] = {{0, -112, -112, 0, 112, 112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {112, 0, 0, 112, 225, 225, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {112, 0, 0, 112, 225, 225, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, -112, -112, 0, 112, 112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-112, -225, -225, -112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-112, -225, -225, -112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 // Open file for writing
-std::ofstream fw("/home/steven/catkin_ws/src/elisa3_node_cpp/src/data_run3.txt", std::ofstream::out);
+std::ofstream fw("/home/steven/catkin_ws/src/elisa3_node_cpp/src/data_run8.txt", std::ofstream::out);
 
-
+int robots = 4;
 int total_events = 0;
 int error_sup = 10;
 bool trigger_motive = false;
@@ -124,6 +123,8 @@ public:
     static const int blueLed =0, blueLed_move=0;
     int count, address;
     int robTurning;
+    int robTurning_prev;
+    int useEstimate = 0;
 
     static const int auto_move_after_trigger = false;
 
@@ -132,8 +133,11 @@ public:
     bool changedActuators[ACTUATORS_NUM];
 
     int robTheta, robXPos, robYPos, xPos_temp, yPos_temp, robXPos_fixed, robYPos_fixed;
+    double disAfterTurn=0;
+    double robXPosAfterTurn=0, robYPosAfterTurn=0;
 
-    double xPos, yPos, zPos, theta, xPos_filtered, yPos_filtered, theta_filtered, theta_filtered_prev, theta_estimate, theta_estimate_prev;
+    double xPos, yPos, zPos, theta, xPos_filtered, yPos_filtered, theta_filtered = 0, theta_filtered_prev = 0, theta_estimate = 0, theta_estimate_prev = 0;
+    double xPos_filtered_prev2, yPos_filtered_prev2;
     double xPos_filtered_prev, yPos_filtered_prev;
     double robXPosPrev, robYPosPrev, robThetaPrev, robDeltaX, robDeltaY, robDeltaTheta;
     double deltaXCorr, deltaYCorr;
@@ -173,27 +177,15 @@ void Robot::updateSensorData() {
     robXPos_fixed = getXpos_fixed(address);
     robYPos_fixed = getYpos_fixed(address);
     robTheta = getOdomTheta(address);
+    robTurning_prev = robTurning;
     robTurning = getTurn(address);
     robSpeed = getSpeed(address)*5;
 
-//        std::cout << "xPos " << tag << " :: [" << robXPos << ", " << robYPos << "], Events::" << getNbEvents(address) << ", " <<getNbResets(address) <<std::endl;
-//        std::cout << "xPos_fixed:: " << tag << " :: [" << robXPos_fixed << ", " << robYPos_fixed << "]" << " " << getNbEvents(address) <<std::endl;
-//        std::cout << "cam_pos:: " << tag << " :: [" << xPos_filtered*1000 << ", " << yPos_filtered*1000  << "]" <<std::endl;
-//        std::cout << "cam_pos (k-1) :: " << tag << " :: [" << xPos_filtered_prev*1000 << ", " << yPos_filtered_prev*1000  << "]" <<std::endl;
-//        std::cout << "theta:: " << tag << " :: [" << getOdomTheta_filtered(address) << ", " << robTheta  << "]" <<std::endl;
-//        std::cout << "turn:: " << robTurning << std::endl;
-//        std::cout << "time :: " << comm_diff << getAccZ(address) <<std::endl;
-//////
-       //std::cout << "" << std::endl;
+//      std::cout << "xPos " << address << " :: [" << robXPos << ", " << robYPos << "], Events::" << getNbEvents(address) << ", " <<getNbResets(address) <<std::endl;
+//      std::cout << "xPos_temp" << address << " :: [" << getOdomXpos_temp1(address) << ", " << getOdomYpos_temp1(address) << "]" << std::endl;
+//      std::cout << "" << std::endl; ////
 
-        gettimeofday(&time_now, nullptr);
-        if (((time_now.tv_sec*1000) + (time_now.tv_usec/1000))-((last_time.tv_sec*1000) + (last_time.tv_usec/1000)) > 5){
-            fw << tag << ", " << ((time_now.tv_sec*1000) + (time_now.tv_usec/1000)) << ", " << robTheta << ", "<< getOdomTheta_filtered(address) << ", " << xPos_filtered*1000 << ", " << robXPos << ", " << yPos_filtered*1000 << ", " << robYPos << ", " << robTurning << ", "<< theta_filtered << ", "<< theta_estimate <<  ", "<< speed_max << ", " << getNbEvents(address) << ", " << getNbResets(address) << ", "<< comm_diff <<"\n";
-            if (tag == 2){
-                gettimeofday(&last_time, nullptr);
-            }
-        }
-
+        //time between transmission -- profiling
         if (robXPos_fixed == getOdomXpos_temp1(address)){
             gettimeofday(&comm_time, nullptr);
             start_comm_time = (comm_time.tv_sec*1000) + (comm_time.tv_usec/1000);
@@ -202,6 +194,35 @@ void Robot::updateSensorData() {
             comm_diff_temp = (comm_time.tv_sec*1000) + (comm_time.tv_usec/1000) - start_comm_time;
             if (comm_diff_temp > comm_diff){
                 comm_diff = comm_diff_temp;
+            }
+        }
+
+        useEstimate = 1;
+        //After turn don't use position estimation unless you have moved straight for 2 cm after turn -- maybe increase this to 5cm
+        if (robTurning_prev == 1 && robTurning == 0){
+            robXPosAfterTurn = robXPos;
+            robYPosAfterTurn = robYPos;
+            useEstimate = 0;
+        }else if (robTurning == 1){
+            useEstimate = 0;
+            theta_estimate_prev = robTheta;
+            theta_estimate = robTheta;
+            theta_filtered = robTheta;
+        }else if (sqrt(pow(robXPosAfterTurn-xPos_filtered*1000,2)+ pow(robYPosAfterTurn-yPos_filtered*1000,2)) > 20){
+            useEstimate = 1;
+            robXPosAfterTurn = 0;
+            robYPosAfterTurn = 0;
+        }
+
+       //Uncomment if you don't have a camera
+       //useEstimate = 0;
+
+        // save data to file
+        gettimeofday(&time_now, nullptr);
+        if (((time_now.tv_sec*1000) + (time_now.tv_usec/1000))-((last_time.tv_sec*1000) + (last_time.tv_usec/1000)) > 10){
+            fw << tag << ", " << ((time_now.tv_sec*1000) + (time_now.tv_usec/1000)) << ", " << robTheta << ", "<< getOdomTheta_filtered(address) << ", " << xPos_filtered*1000 << ", " << robXPos << ", " << yPos_filtered*1000 << ", " << robYPos << ", " << robTurning << ", "<< theta_filtered << ", "<< theta_estimate <<  ", "<< speed_max << ", " << getNbEvents(address) << ", " << getNbResets(address) << ", "<< comm_diff << ", "<< useEstimate << "," << robXPosAfterTurn << ", " << robYPosAfterTurn <<"\n";
+            if (tag == robots-1){
+                gettimeofday(&last_time, nullptr);
             }
         }
 }
@@ -269,7 +290,7 @@ void Robot::updateRosInfo() {
 }
 
 void Robot::IIR_filter(){
-  int c1 = 6, c2 = 8;
+  int c1 = 14, c2 = 16;
 
   theta_filtered = c1*theta_filtered_prev + theta_estimate + theta_estimate_prev;
   theta_filtered = theta_filtered/c2;
@@ -378,12 +399,15 @@ void handlerVelocity(const geometry_msgs::Twist::ConstPtr& msg) {
 void handlerAllAutoMove(const std_msgs::Float64MultiArray::ConstPtr& msg) {
     int nr_robots = int(msg->data[0]);
     int tag;
-    double disX, disY;
+    double disX, disY, disX_old, disY_old;
     double angle;
 
     XmlRpc::XmlRpcValue::iterator i;
     for (int i=0; i < nr_robots; i++){
         tag = getIdFromAddress(int(msg->data[i*4+1]));
+
+        //robots_dict[tag].xPos_filtered_prev2 = robots_dict[tag].xPos_filtered_prev;
+        //robots_dict[tag].yPos_filtered_prev2 = robots_dict[tag].yPos_filtered_prev;
 
         robots_dict[tag].xPos_filtered_prev = robots_dict[tag].xPos_filtered;
         robots_dict[tag].yPos_filtered_prev = robots_dict[tag].yPos_filtered;
@@ -394,23 +418,28 @@ void handlerAllAutoMove(const std_msgs::Float64MultiArray::ConstPtr& msg) {
 
         //Adjust theta based on x and y displacement
         if(robots_dict[tag].robTurning == 0){
+            //disX_old = -robots_dict[tag].xPos_filtered_prev2+robots_dict[tag].xPos_filtered_prev;
+            //disY_old = -robots_dict[tag].yPos_filtered_prev2+robots_dict[tag].yPos_filtered_prev;
             disX = -robots_dict[tag].xPos_filtered_prev+robots_dict[tag].xPos_filtered;
             disY = -robots_dict[tag].yPos_filtered_prev+robots_dict[tag].yPos_filtered;
             angle = atan2(disY, disX);
 
-            if ((disX>0.001 || disY>0.001 || disX<-0.001 || disY<-0.001)){ //fabs(angle)<M_PI/2 && --
+            //if ((disX>0.002 || disY>0.002 || disX<-0.002 || disY<-0.002)){ //fabs(angle)<M_PI/2 && --
                 robots_dict[tag].theta_estimate = angle*57.3;
                 std::cout << "Angle calculated: " << robots_dict[tag].theta_estimate << "\n";
-            }else{
-                robots_dict[tag].theta_estimate = robots_dict[tag].theta_estimate;
-                std::cout << "Angle reused: " << robots_dict[tag].theta_filtered << "\n";
-            }
+            //}else{
+            //    robots_dict[tag].theta_estimate = robots_dict[tag].theta_estimate;
+            //    std::cout << "Angle reused: " << robots_dict[tag].theta_filtered << "\n";
+            //}
 
-            // IIR filter -- remove large peaks
+            // IIR filter -- remove large peaks -
             //robots_dict[tag].IIR_filter();
+            robots_dict[tag].theta_filtered = robots_dict[tag].theta_estimate;
 
         }else{
         // robot is turning -- estimate is wrong use odometry theta
+            robots_dict[tag].theta_filtered_prev = robots_dict[tag].robTheta;
+            robots_dict[tag].theta_estimate_prev = robots_dict[tag].robTheta;
             robots_dict[tag].theta_estimate = robots_dict[tag].robTheta;
             robots_dict[tag].theta_filtered = robots_dict[tag].robTheta;
         }
@@ -434,13 +463,16 @@ void handlerAllReset(const std_msgs::Float64MultiArray::ConstPtr& msg) {
     std::map<int, Robot>::iterator it;
 
     for (it = robots_dict.begin(); it != robots_dict.end(); it++){
+       if(robots_dict[it->first].useEstimate == 1){
+          setTheta(robots_dict[it->first].address, robots_dict[it->first].theta_filtered*10);
+          resetTheta(robots_dict[it->first].address);
+      }
+
           setXpos(robots_dict[it->first].address, robots_dict[it->first].xPos_filtered*1000); //update live position of the robots
           setYpos(robots_dict[it->first].address, robots_dict[it->first].yPos_filtered*1000);
-          setTheta(robots_dict[it->first].address, robots_dict[it->first].theta_filtered*10);
+          enableReset(robots_dict[it->first].address);
     }
     std::cout << "Reset msg" << std::endl;
-    enableReset();
-    resetTheta();
 }
 
 bool * get_sensors_condition(unsigned int proxData[8]){
@@ -479,7 +511,15 @@ void updateActuators() {
                 setXpos_fixed(robots_dict[it->first].address, robots_dict[it->first].robXPos_fixed); //update broadcast pos of the robots
                 setYpos_fixed(robots_dict[it->first].address, robots_dict[it->first].robYPos_fixed);
 
-                setTheta(robots_dict[it->first].address, robots_dict[it->first].theta_filtered*10); // in degrees
+                if(robots_dict[it->first].useEstimate == 1){
+                    //setXpos(robots_dict[it->first].address, robots_dict[it->first].xPos_filtered*1000); //update live position of the robots
+                    //setYpos(robots_dict[it->first].address, robots_dict[it->first].yPos_filtered*1000); //TODO change to x/yPos_filtered
+                    setTheta(robots_dict[it->first].address, robots_dict[it->first].theta_filtered*10); // in degrees
+                }else{
+                    //setXpos(robots_dict[it->first].address, robots_dict[it->first].robXPos); //update live position of the robots
+                    //setYpos(robots_dict[it->first].address, robots_dict[it->first].robYPos); //TODO change to x/yPos_filtered
+                    setTheta(robots_dict[it->first].address, robots_dict[it->first].robTheta*10); // in degrees
+                }
             }
 
         }
@@ -501,7 +541,7 @@ int main(int argc,char *argv[]) {
     * remappings directly, but for most command-line programs, passing argc and argv is
     * the easiest way to do it.  The third argument to init() is the name of the node.
     *
-    * You must call one of the versions of ros::init() before using any other -
+    * You must call one of the versions of ros::init() before using any other --
     * part of the ROS system.
     */
     ros::init(argc, argv, "elisa3_node_cpp");
@@ -519,9 +559,10 @@ int main(int argc,char *argv[]) {
 
     // Remote procedure call -- is a protocol used to communicate between programs or ask for a request
     XmlRpc::XmlRpcValue body_list;
-    np.param("rigid_bodies", body_list, body_list); // refers to the file mocap.yaml with all the id's and robot addresses
+    np.param("rigid_bodies", body_list, body_list); // refers to the file mocap.yaml with all the id's and robot addresses..
 
     int N_robots = body_list.size();
+    //std::cout << N_robots << "\n";
     int robot_addresses[N_robots];
 
     if (body_list.getType() == XmlRpc::XmlRpcValue::TypeStruct && body_list.size() > 0){
@@ -588,7 +629,7 @@ int main(int argc,char *argv[]) {
 
             disableObstacleAvoidance(class_inst.address);
 
-            // Topic that get position + theta estimation from Optitrack
+            // Topic that get position + theta estimation from Optitrack.
             AllAutoMotiveSubscriber = n.subscribe("elisa3_all_robots/auto_motive", 10, handlerAllAutoMove);
 
             AllResetSubscriber = n.subscribe("elisa3_all_robots/reset", 10, handlerAllReset);
@@ -604,7 +645,7 @@ int main(int argc,char *argv[]) {
 
     startCommunication(robot_addresses, N_robots);
 
-    // Enable obstacle avoidance for all robots
+    // Enable obstacle avoidance for all robots.
     std::map<int, Robot>::iterator it;
     for (it = robots_dict.begin(); it != robots_dict.end(); it++){
         disableObstacleAvoidance(robots_dict[it->first].address);
@@ -631,3 +672,4 @@ int main(int argc,char *argv[]) {
     }
     stopCommunication();
 }
+
