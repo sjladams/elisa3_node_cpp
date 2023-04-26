@@ -53,7 +53,7 @@
 #define BLUE_LEDS_MOVE 6
 #define GREEN_LEDS_RESET 7
 
-#define WHEEL_DISTANCE 0.041		// Distance between wheels in meters (axis length)
+#define WHEEL_DISTANCE 0.041		// Distance between wheels in meters (axis length).
 #define ROBOT_RADIUS 0.025			// meters.
 
 // new variables
@@ -65,7 +65,7 @@
 int Bx_sup[18][18] = {{0, 65, 195, 259, 194, 65, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-65, 0, 130, 194, 129, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-195, -130, 0, 64, 0, -129, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-259, -194, -64, 0, -65, -194, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-194, -129, 0, 65, 0, -129, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-65, 0, 129, 194, 129, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 int By_sup[18][18] = {{0, -112, -112, 0, 112, 112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {112, 0, 0, 112, 225, 225, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {112, 0, 0, 112, 225, 225, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, -112, -112, 0, 112, 112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-112, -225, -225, -112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {-112, -225, -225, -112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 // Open file for writing
-std::ofstream fw("/home/steven/catkin_ws/src/elisa3_node_cpp/src/data_run8.txt", std::ofstream::out);
+std::ofstream fw("/home/steven/catkin_ws/src/elisa3_node_cpp/src/data_run23.txt", std::ofstream::out);
 
 int robots = 4;
 int total_events = 0;
@@ -197,8 +197,8 @@ void Robot::updateSensorData() {
             }
         }
 
-        useEstimate = 1;
-        //After turn don't use position estimation unless you have moved straight for 2 cm after turn -- maybe increase this to 5cm
+        //useEstimate = 1;
+        //After turn don't use position estimation unless you have moved straight for 2 cm after turn -- maybe increase this to 5cm.
         if (robTurning_prev == 1 && robTurning == 0){
             robXPosAfterTurn = robXPos;
             robYPosAfterTurn = robYPos;
@@ -454,8 +454,8 @@ void handlerAllAutoMove(const std_msgs::Float64MultiArray::ConstPtr& msg) {
             }
         }
     }
-    
-    
+
+
 }
 
 void handlerAllReset(const std_msgs::Float64MultiArray::ConstPtr& msg) {
@@ -672,4 +672,3 @@ int main(int argc,char *argv[]) {
     }
     stopCommunication();
 }
-
